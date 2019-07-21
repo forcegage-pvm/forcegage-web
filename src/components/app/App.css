@@ -14,23 +14,47 @@
   text-align: center;
   vertical-align: center;
   background-color: white;
-  color: #2E4053;
+  color: #2e4053;
   padding-top: 10px;
   font-weight: bold;
   margin-right: 90px;
   font-size: 2.5ex;
 }
 
+.div-athlete {
+  margin-top: -8px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 5px;
+  border-color: rgb(195, 212, 182);
+  border-width: 1px;
+  border-style: solid;
+  padding-top: 8px;
+  height: 58px;
+  width: 245px;
+  margin-left: 15px;
+  margin-right: 0px;
+}
+
+.div-athlete-head {
+  margin-left: 22px;
+  margin-top: -1px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 2.1ex;
+  color: #67799ee0;
+  border-color: #28326986;
+}
+
 .Menu-image {
   text-align: center;
   vertical-align: center;
   background-color: white;
-  color: #2E4053;
+  color: #2e4053;
   padding-top: 8px;
   height: 34px;
   margin-left: 150px;
   margin-right: 20px;
-  font-weight: bold
+  font-weight: bold;
 }
 
 .App-logo {
