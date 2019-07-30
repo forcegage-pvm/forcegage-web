@@ -1,66 +1,147 @@
 import React, { Component } from 'react';
+import _ from 'lodash';
 import { Icon, Step } from 'semantic-ui-react';
 import { Icon as Img } from 'antd';
-import { Row, Col } from 'antd';
+import { Row, Col, Spin } from 'antd';
 import SelectAthlete from './SelectAthlete';
-import { Image, Grid } from 'semantic-ui-react';
 import '../app/App.css';
-import { List, Typography } from 'antd';
-import AthleteDateHeatMap from './AthleteDateHeatMap';
+import { List } from 'antd';
 import AthleteTransformer from '../../transformers/data/athleteTransformer';
+import SelectSession from './SelectSessions';
 
-const paragraph = (
-  <Image src="https://react.semantic-ui.com/images/wireframe/short-paragraph.png" />
-);
-
-const today = new Date();
+import Analyze from './Analyze';
 
 export default class Athletes extends Component {
   constructor(props) {
     super(props);
+    this.transformer = new AthleteTransformer();
     this.state = {
       Steps: {
         Athlete: {
           Active: true,
           Link: true,
-          Disabled: false
+          Disabled: false,
+          Loading: false
         },
         Session: {
           Active: false,
           Link: false,
-          Disabled: false
+          Disabled: false,
+          Loading: false
         },
         Analyze: {
           Active: false,
           Link: false,
-          Disabled: false
+          Disabled: true,
+          Loading: false
         }
       },
-      SelectedAthletes: []
+      SelectedAthletes: [],
+      FilteredData: [],
+      StatisticData: [],
+      AllData: [],
+      Filters: {
+        years: [],
+        days: [],
+        exercises: [],
+        weights: [],
+        sides: [],
+        set: false
+      }
     };
   }
+
+  onFilter = async filter => {
+    const { FilteredData } = this.state;
+    var filteredData = await this.transformer.count(FilteredData, filter);
+    this.setState({ FilteredData: filteredData });
+  };
+
+  onFilterCount = async filter => {
+    const { FilteredData } = this.state;
+    return this.transformer.count(FilteredData, filter);
+  };
+
+  onAnalyze = async (statistics, filters) => {
+    let Steps = this.state.Steps;
+    this.setState(
+      {
+        StatisticData: statistics
+      },
+      () => {
+        Steps.Athlete.Active = false;
+        Steps.Session.Active = false;
+        Steps.Session.Link = true;
+        Steps.Analyze.Active = true;
+        Steps.Analyze.Disabled = false;
+        Steps.Session.Loading = false;
+        filters.set = true;
+        this.setState({
+          Steps: Steps,
+          Filters: filters
+        });
+      }
+    );
+  };
 
   onSelectAthlete = async athletes => {
     this.setState({ SelectedAthletes: athletes });
     let Steps = this.state.Steps;
     Steps.Athlete.Active = false;
-    Steps.Session.Active = true;
+    Steps.Session.Active = false;
+    Steps.Analyze.Active = false;
+    Steps.Session.Loading = true;
+    Steps.Session.Link = false;
+    this.setState(
+      prevState => {
+        let state = Object.assign({}, prevState);
+        // state.FilteredData = filteredData;
+        // state.AllData = filteredData;
+        // state.Steps = Steps;
+        state.Filters.set = false;
+        return { state };
+      },
+      () => {}
+    );
     this.setState({ Steps: Steps });
-    var transformer = new AthleteTransformer();
-    await transformer.getDays();
+    let filteredData = await this.transformer.getTopLevelData(athletes[0].key);
+    Steps.Session.Loading = false;
+    Steps.Session.Active = true;
+    this.setState({ FilteredData: filteredData });
+    this.setState({ AllData: filteredData });
+    this.setState({ Steps: Steps });
   };
 
   selectedAthlete = async () => {
     let Steps = this.state.Steps;
     Steps.Athlete.Active = true;
     Steps.Session.Active = false;
+    Steps.Session.Link = false;
+    Steps.Analyze.Active = false;
+    Steps.Analyze.Disabled = true;
     this.setState({ Steps: Steps });
     this.setState({ SelectedAthletes: [] });
-    console.log('AthleteTransformer');
+  };
+
+  selectedFilter = async () => {
+    let Steps = this.state.Steps;
+    Steps.Session.Active = true;
+    Steps.Session.Link = false;
+    Steps.Athlete.Link = true;
+    Steps.Analyze.Active = false;
+    Steps.Analyze.Disabled = true;
+    Steps.Session.Loading = false;
+    this.setState({ Steps: Steps });
   };
 
   render() {
-    const { Steps, SelectedAthletes } = this.state;
+    const {
+      Steps,
+      SelectedAthletes,
+      FilteredData,
+      StatisticData,
+      Filters
+    } = this.state;
 
     return (
       <React.Fragment>
@@ -78,7 +159,11 @@ export default class Athletes extends Component {
               </Step.Description>
             </Step.Content>
           </Step>
-          <Step active={Steps.Session.Active} link={Steps.Session.Link}>
+          <Step
+            active={Steps.Session.Active}
+            link={false}
+            onClick={!Steps.Athlete.Active && this.selectedFilter}
+          >
             <Icon name="child" color="red" />
             <Step.Content>
               <Step.Title>Sessions</Step.Title>
@@ -89,7 +174,7 @@ export default class Athletes extends Component {
           </Step>
 
           <Step
-            disabled
+            disabled={Steps.Analyze.Disabled}
             active={Steps.Analyze.Active}
             link={Steps.Analyze.Link}
           >
@@ -108,16 +193,18 @@ export default class Athletes extends Component {
               <List size="small">
                 <List.Item>
                   <div
-                    class="row"
                     width={800}
                     className="div-athlete"
-                    style={{ backgroundColor: 'red' }}
+                    style={{
+                      backgroundColor: '#FDEDEC',
+                      borderColor: '#D6DBDF'
+                    }}
                   >
                     <Row>
                       <Col span={16}>
                         <div
                           className="div-athlete-head"
-                          style={{ color: 'white' }}
+                          style={{ color: '#ABB2B9' }}
                         >
                           No athlete selected
                         </div>
@@ -126,7 +213,7 @@ export default class Athletes extends Component {
                           style={{
                             fontSize: '1.9ex',
                             fontWeight: '200',
-                            color: '#e7e0e0da'
+                            color: '#ABB2B9'
                           }}
                         >
                           select one to start
@@ -137,10 +224,16 @@ export default class Athletes extends Component {
                 </List.Item>
               </List>
             )}
-            {SelectedAthletes.map(athlete => (
-              <List size="small">
-                <List.Item>
-                  <div class="row" width={800} className="div-athlete">
+
+            <List size="small">
+              {SelectedAthletes.map(athlete => (
+                <List.Item key={athlete.key}>
+                  <div
+                    class="row"
+                    width={800}
+                    className="div-athlete"
+                    key={athlete.key}
+                  >
                     <Row>
                       <Col span={16}>
                         <div className="div-athlete-head">{athlete.name}</div>
@@ -164,10 +257,10 @@ export default class Athletes extends Component {
                     </Row>
                   </div>
                 </List.Item>
-              </List>
-            ))}
+              ))}
+            </List>
           </div>
-          <div class="column">
+          <div className="column">
             {Steps.Athlete.Active && (
               <SelectAthlete
                 onSelected={this.onSelectAthlete}
@@ -175,10 +268,28 @@ export default class Athletes extends Component {
               ></SelectAthlete>
             )}
           </div>
-          {Steps.Session.Active && (
-            <div class="column">
-              <AthleteDateHeatMap />
+          {Steps.Session.Loading && (
+            <div className="column">
+              <Spin
+                size="large"
+                tip="Loading sessions..."
+                style={{ height: '800px', width: '800px', textAlign: 'center' }}
+              ></Spin>
+              ,
             </div>
+          )}
+          {Steps.Session.Active && (
+            <SelectSession
+              FilteredData={FilteredData}
+              Filters={Filters}
+              Transformer={this.transformer}
+              onFilter={this.onFilter}
+              onFilterCount={this.onFilterCount}
+              onAnalyze={this.onAnalyze}
+            ></SelectSession>
+          )}
+          {Steps.Analyze.Active && (
+            <Analyze statistics={StatisticData}></Analyze>
           )}
         </div>
       </React.Fragment>

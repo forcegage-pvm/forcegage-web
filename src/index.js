@@ -4,6 +4,11 @@ import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './components/app/App';
 import * as serviceWorker from './serviceWorker';
+import MonthCalendar from './components/calendar/MonthCalendar';
+import Array from './extensions/Array';
+import AthleteTransformer from './transformers/data/athleteTransformer';
+import expander from './transformers/data/DataExpander';
+import StatsProvider from './providers/data/StatsProvider';
 
 ReactDOM.render(<App />, document.getElementById('root'));
 
@@ -12,20 +17,64 @@ ReactDOM.render(<App />, document.getElementById('root'));
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
 
-// import React from "react";
-// import { render } from "react-dom";
-// import { Provider } from "react-redux";
-// import store from "./store/index";
-// import App from "./components/App"
-// // if you're in create-react-app import the files as:
-// // import store from "./js/store/index";
-// // import App from "./js/components/App.jsx";
-// render(
-//   <Provider store={store}>
-//     <App />
-//   </Provider>,
-//   // The target element might be either root or app,
-//   // depending on your development environment
-//   // document.getElementById("app")
-//   document.getElementById("root")
-// );
+async function getData() {
+  const transformer = new AthleteTransformer();
+  var data = await transformer.getData(1);
+  var expanded = expander(data);
+
+  console.log('expanded', expanded);
+
+  const statsProvider = new StatsProvider(expanded);
+  // console.log("years", statsProvider.getYears())
+  // console.log("weeks", statsProvider.getWeeks(2019))
+  // console.log("months", statsProvider.getMonths(2019))
+  // console.log("getExercises()", statsProvider.getExercises())
+  // console.log("getWeights()", statsProvider.getWeights(2019))
+  const filter = {
+    // weight: 50,
+    year: {
+      filter: false,
+      value: 2019,
+      compare: '='
+    },
+    fullDate: {
+      filter: true,
+      value: new Date(2019, 8, 1),
+      compare: '<='
+    }
+  };
+  // statsProvider.filterStatsBy(filter, true, true, true)
+  // console.log("filterStatsBy(filter)", statsProvider.filterStatsBy(filter, true, true, true))
+  const group = {
+    weight: {
+      filter: false,
+      group: true
+    },
+    month: {
+      filter: false,
+      value: 7,
+      compare: '=',
+      group: false
+    },
+    exercise: {
+      filter: false,
+      group: false
+    },
+    year: {
+      filter: false,
+      value: 2019,
+      compare: '=',
+      group: false
+    },
+    fullDate: {
+      filter: true,
+      value: new Date(2018, 12, 1),
+      compare: '<=',
+      group: false
+    }
+  };
+  // console.log("group", group)
+  console.log('groupSessionsBy(filter)', statsProvider.groupSessionsBy(group));
+}
+
+// getData()

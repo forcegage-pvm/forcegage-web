@@ -10,6 +10,13 @@
   padding: 15px;
 }
 
+.table-grid-row {
+  height: -1px;
+  min-height: 15px;
+  block-size: 20px;
+  color: #a89b97;
+}
+
 .Menu-header {
   text-align: center;
   vertical-align: center;
@@ -23,9 +30,9 @@
 
 .div-athlete {
   margin-top: -8px;
-  background-color: rgb(255, 255, 255);
+  background-color: rgb(225, 241, 221);
   border-radius: 5px;
-  border-color: rgb(195, 212, 182);
+  border-color: rgb(137, 172, 111);
   border-width: 1px;
   border-style: solid;
   padding-top: 8px;
@@ -41,7 +48,7 @@
   text-align: left;
   font-weight: 500;
   font-size: 2.1ex;
-  color: #67799ee0;
+  color: #1f550fe0;
   border-color: #28326986;
 }
 

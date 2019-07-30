@@ -1,0 +1,84 @@
+.tabs {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 700px;
+  margin-left: 15px;
+  padding: 1x 1px;
+  border-radius: 5px;
+}
+
+.tab-list {
+  display: flex;
+  padding-bottom: 0px;
+  background-color: #154360;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.tab-progress {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: 0px;
+  height: 0px;
+  z-index: 0;
+  background-color: red;
+  transform-origin: 0%;
+}
+
+.tab {
+  outline: none;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 22px;
+  padding: 8px 16px;
+  color: #d3eaf0;
+  background-color: #154360;
+  border-style: none;
+  border: 0px solid #ff0000;
+  margin-right: 0px;
+  border-radius: 5px;
+
+  transition: color 0.16s ease-in-out, background-color 0.16s ease-in-out,
+    border-color 0.16s ease-in-out;
+}
+
+.tab:focus,
+.tab:focus-visible {
+  box-shadow: none;
+  outline: none;
+}
+
+.tab:focus:not(:focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.tab.active {
+  background-color: #2471a3;
+  border-style: none;
+  color: white;
+  cursor: default;
+  font-size: 14px;
+  font-weight: 400;
+  box-shadow: none;
+  border-radius: 5px;
+  outline: none;
+}
+
+.panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  box-shadow: none;
+  border-radius: 5px;
+}
+
+.panel {
+  position: absolute;
+}

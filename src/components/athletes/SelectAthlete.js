@@ -6,7 +6,6 @@ import { Table, Tag } from 'antd';
 import ApolloClient, { gql } from 'apollo-boost';
 import { Button, Icon } from 'antd';
 import { Row } from 'antd';
-import { Image, Item } from 'semantic-ui-react';
 
 const client = new ApolloClient({
   uri: 'https://forcegage-gcp.appspot.com/graphql/'
@@ -123,21 +122,21 @@ export default class SelectAthlete extends React.Component {
 
     return (
       <React.Fragment>
-        <div style={{ marginLeft: '15px' }}>
+        <div style={{ marginLeft: '15px', width: '800px' }}>
           <Row>
             <Table
-              style={{ width: '600px' }}
+              style={{ width: '700px' }}
               rowSelection={this.rowSelectionAthlete}
               columns={AthleteColumns}
               dataSource={athleteData}
-              size="small"
+              bordered={false}
               pagination={true}
             />
           </Row>
           <Row style={{ display: 'flex' }}>
             <Button
               type="primary"
-              style={{ marginLeft: '460px' }}
+              style={{ marginLeft: '550px' }}
               onClick={() => {
                 this.props.onSelected(SelectedAthleteIds);
               }}
