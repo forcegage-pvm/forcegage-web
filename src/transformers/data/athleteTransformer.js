@@ -188,11 +188,13 @@ export default class AthleteTransformer {
           person(id: ${id}) {
             id
             sessions {
+              id
               timestamp
               exercise
               weight
               year
               exerciseSets {
+                id,
                 setNo
                 side
                 timestamp
@@ -202,6 +204,7 @@ export default class AthleteTransformer {
                   side
                   timestamp
                   statistics {
+                    id,
                     class
                     aggregation
                     value

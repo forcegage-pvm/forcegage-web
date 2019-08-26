@@ -3,6 +3,7 @@ import { Input, Menu } from 'semantic-ui-react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import Athletes from '../athletes/Athletes';
 import MonthCalendar from '../calendar/MonthCalendar';
+import MonthCalendarContainer from '../calendar/MonthCalendarContainer';
 import Home from '../app/Home';
 import forceicon from '../../assets/forceicon.png';
 import '../app/App.css';
@@ -64,7 +65,7 @@ export default class ForceMenu extends Component {
                 <Route path="/athlete" component={props => <Athletes />} />
                 <Route
                   path="/analysis"
-                  component={props => <MonthCalendar />}
+                  component={props => <MonthCalendarContainer />}
                 />
               </main>
             </React.Fragment>

@@ -47,6 +47,18 @@ export default class StatsProvider {
     distinctExercises.sort((x, y) => (x > y ? 1 : -1));
     return distinctExercises;
   };
+
+  getExercisesForFilter = (filter, ignoreEmptyStats = false) => {
+    const sessionIds = this.getSessionIdsForFilter(filter, ignoreEmptyStats);
+    const sessionsForFilter = this.expandedData.sessions.filter(session => {
+      return sessionIds.includes(session.sessionId);
+    });
+    const distinctExercises = [
+      ...new Set(sessionsForFilter.map(x => x.exercise))
+    ];
+    distinctExercises.sort((x, y) => (x > y ? 1 : -1));
+    return distinctExercises;
+  };
   // returns the distinct weights in the dataset for the year provided.
   // if years is not provided, all weights
   getWeights = year => {
@@ -60,6 +72,27 @@ export default class StatsProvider {
     distinctWeights.sort((x, y) => (x > y ? 1 : -1));
     return distinctWeights;
   };
+
+  getWeightsForFilter = (filter, ignoreEmptyStats = false) => {
+    const sessionIds = this.getSessionIdsForFilter(filter, ignoreEmptyStats);
+    const sessionsForFilter = this.expandedData.sessions.filter(session => {
+      return sessionIds.includes(session.sessionId);
+    });
+    const distinctWeights = [...new Set(sessionsForFilter.map(x => x.weight))];
+    distinctWeights.sort((x, y) => (x > y ? 1 : -1));
+    return distinctWeights;
+  };
+
+  getSidesForFilter = (filter, ignoreEmptyStats = false) => {
+    const sessionIds = this.getSessionIdsForFilter(filter, ignoreEmptyStats);
+    const sessionsForFilter = this.expandedData.reps.filter(session => {
+      return sessionIds.includes(session.sessionId);
+    });
+    const distinctSides = [...new Set(sessionsForFilter.map(x => x.side))];
+    distinctSides.sort((x, y) => (x > y ? 1 : -1));
+    return distinctSides;
+  };
+
   // returns the stats filtered by the filter provided
   filterStatsBy = (filter, returnSessions, returnSets, returnReps) => {
     const sessionIds = this.getSessionIdsForFilter(filter);
@@ -117,10 +150,14 @@ export default class StatsProvider {
   };
 
   personalBestsForPeriod = filter => {
-    filter.exercise = {
-      filter: false,
-      group: true
-    };
+    if (filter['exercise'] === undefined) {
+      filter.exercise = {
+        filter: false,
+        group: true
+      };
+    } else {
+      filter.exercise.group = true;
+    }
     var result = [];
     const maxTypes = ['force', 'fmax', 'power', 'velocity'];
     var grouped = this.groupSessionsBy(filter);
@@ -133,12 +170,20 @@ export default class StatsProvider {
           type,
           'avg'
         );
-        var max = filteredStats.Max('value');
-        result.push({
-          exercise: index,
-          type: type,
-          value: max[0]
-        });
+        if (filteredStats.length !== 0) {
+          var max = filteredStats.Max('value');
+          var sessionId = filteredStats.find(stat => stat.value == max[0])
+            .sessionId;
+          var maxSession = exercise.sessions.find(
+            session => session.sessionId === sessionId
+          );
+          result.push({
+            exercise: index,
+            type: type,
+            value: max[0],
+            date: maxSession.fullDate
+          });
+        }
       });
     }
     var stats = this.filterStatsBy(filter, false, false, true);
@@ -147,7 +192,7 @@ export default class StatsProvider {
   };
 
   // get the sessionIds for the provided filter
-  getSessionIdsForFilter = filter => {
+  getSessionIdsForFilter = (filter, ignoreEmptyStats = false) => {
     var checkSides = false;
     const sessions = this.expandedData.sessions.filter(session => {
       var found = true;
@@ -161,6 +206,8 @@ export default class StatsProvider {
               found = found && session[key] >= filter[key].values[0];
             } else if (filter[key].compare === '<=') {
               found = found && session[key] <= filter[key].values[0];
+            } else if (filter[key].compare === 'in') {
+              found = found && filter[key].values.includes(session[key]);
             } else if (filter[key].compare === 'between') {
               found =
                 found &&
@@ -178,10 +225,19 @@ export default class StatsProvider {
     });
     var sessionIds = sessions.map(x => x.sessionId);
     if (checkSides) {
-      var repsForSession = this.expandedData.sets.filter(rep => {
-        return sessionIds.includes(rep.sessionId) && rep.side === filter.side;
+      var repsForSession = this.expandedData.reps.filter(rep => {
+        return (
+          sessionIds.includes(rep.sessionId) &&
+          rep.side === filter.side.values[0]
+        );
       });
       sessionIds = [...new Set(repsForSession.map(x => x.sessionId))];
+    }
+    if (ignoreEmptyStats) {
+      var statsForSessions = this.expandedData.stats.filter(stat => {
+        return sessionIds.includes(stat.sessionId);
+      });
+      sessionIds = [...new Set(statsForSessions.map(x => x.sessionId))];
     }
     return sessionIds;
   };
@@ -214,6 +270,9 @@ export default class StatsProvider {
           sessions: item,
           reps: stats.reps.filter(rep => {
             return sessionIds.includes(rep.sessionId);
+          }),
+          sets: stats.sets.filter(set => {
+            return sessionIds.includes(set.sessionId);
           }),
           stats: stats.stats.filter(rep => {
             return sessionIds.includes(rep.sessionId);

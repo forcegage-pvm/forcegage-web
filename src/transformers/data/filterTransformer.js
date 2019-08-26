@@ -188,7 +188,7 @@ export function filterData(data, filters) {
     //olympic average
     group.forEach(record => {
       var sum = 0;
-      record.values.sort((a, b) => (a > b ? 1 : -1));
+      record.values = record.values.sort((a, b) => (a > b ? 1 : -1));
       var start = Math.round(record.values.length * 0.2501);
       var end = Math.round(record.values.length * (1 - 0.2501));
       var subset = record.values.slice(start, end);

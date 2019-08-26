@@ -1,0 +1,181 @@
+.tag-max-value {
+  background-color: rgb(236, 35, 0);
+  border-radius: 5px;
+  font-size: 1.9ex;
+  font-weight: 400;
+  height: 23px;
+  border-color: rgb(212, 108, 108);
+  color: rgb(255, 255, 255);
+}
+
+.tag-best-session {
+  background-color: rgb(34, 136, 48);
+  border-radius: 5px;
+  font-size: 1.9ex;
+  font-weight: 400;
+  height: 23px;
+  border-color: rgb(212, 108, 108);
+  color: rgb(255, 255, 255);
+}
+
+.sessions-container {
+  grid-column: 1;
+  grid-row: 3;
+  display: grid;
+  margin-top: 5px;
+  grid-template-rows: 27px 500px;
+}
+
+.sessions-header {
+  grid-row: 1;
+  font-size: 1.05em;
+  font-weight: 700;
+  color: rgb(15, 41, 77);
+  font-stretch: ultra-expanded;
+  margin: 5px 5px 10px 5px;
+}
+
+.sessions-content {
+  grid-row: 2;
+  height: 200px;
+  width: 800px;
+  margin-right: 50px;
+}
+
+.session {
+  display: grid;
+  padding-top: 0px;
+  height: min-content;
+  margin: 5px 0px 0px 0px;
+  grid-template-columns: 125px max-content max-content auto max-content;
+  grid-template-rows: 10px 20px 20px 20px 20px 40px;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+  align-content: center;
+  background-color: white;
+}
+
+.session-header {
+  font-size: 0.8em;
+  font-weight: 600;
+  margin-top: 5px;
+  color: rgb(151, 161, 175);
+}
+
+.session-title {
+  font-size: 1.35em;
+  font-weight: 600;
+  color: rgb(20, 52, 121);
+}
+
+.session-time {
+  grid-row: 1;
+  grid-column: 4;
+  text-align: end;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-right: 5px;
+  padding: 5px;
+  color: rgb(87, 12, 18);
+}
+
+.session-best {
+  grid-row: 2 span 4;
+  grid-column: 3;
+  margin-top: 50px;
+}
+
+.day-tab {
+  width: max-content;
+  height: max-content;
+  margin-top: 20px;
+}
+
+.day-summary-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.exercise-summary-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 50px 75px 80px 1fr;
+  text-align: center;
+  width: 360px;
+  height: 400px;
+  padding: 10px;
+  margin: 5px;
+  border-style: solid;
+  border-width: 0.1em;
+  border-radius: 5%;
+  border-color: #e5e8e8;
+  background-color: rgb(255, 255, 255);
+}
+
+.exercise-summary-title {
+  grid-column: 1/4;
+  grid-row: 1;
+  font-size: 1.6em;
+  font-weight: 700;
+  color: rgb(29, 61, 110);
+}
+
+.exercise-summary-icon {
+  grid-column: 1;
+  grid-row: 1;
+  padding-top: 5px;
+  font-size: 1.6em;
+  font-weight: 100;
+  color: #2980b9;
+}
+
+.exercise-summary-sessions {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.exercise-summary-sets {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.exercise-summary-reps {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.exercise-summary-chart-fmax {
+  grid-column: 1;
+  grid-row: 4;
+}
+
+.exercise-summary-chart-force {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+.exercise-summary-chart-power {
+  grid-column: 3;
+  grid-row: 4;
+}
+
+.exercise-summary-force {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.exercise-summary-power {
+  grid-column: 3;
+  grid-row: 3;
+}
+
+.exercise-summary-fmax {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.exercise-summary-force-value {
+  color: red;
+}

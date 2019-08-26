@@ -58,7 +58,7 @@ export function statsTransformer(data, key, type) {
     if (data.type == key && data.aggregation == type) {
       if (data.side == 'Left') {
         if (data.class == 'Total') {
-          curStat.left.total = Number(data.value) + 1 - 1;
+          curStat.left.total = Number(data.value);
         }
         if (data.class == 'Concentric') {
           curStat.left.concentric = Number(data.value);
@@ -69,7 +69,7 @@ export function statsTransformer(data, key, type) {
       }
       if (data.side == 'Right') {
         if (data.class == 'Total') {
-          curStat.right.total = Number(data.value) + 1 - 1;
+          curStat.right.total = Number(data.value);
         }
         if (data.class == 'Concentric') {
           curStat.right.concentric = Number(data.value);
@@ -80,7 +80,7 @@ export function statsTransformer(data, key, type) {
       }
       if (data.side == 'Both') {
         if (data.class == 'Total') {
-          curStat.both.total = Number(data.value) + 1 - 1;
+          curStat.both.total = Number(data.value);
         }
         if (data.class == 'Concentric') {
           curStat.both.concentric = Number(data.value);

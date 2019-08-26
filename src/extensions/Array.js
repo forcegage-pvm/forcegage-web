@@ -51,6 +51,57 @@ Object.defineProperty(Array.prototype, 'Max', {
   configurable: true
 });
 
+Object.defineProperty(Array.prototype, 'Avg', {
+  value: function Avg() {
+    var result = [];
+    this.forEach((value, index) => {
+      if (arguments.length > 0) {
+        for (var i = 0; i < arguments.length; i++) {
+          if (result.length < i + 1) {
+            result.push(0);
+          }
+          var arg = arguments[i];
+          var paths = arg.split('.');
+          if (paths.length == 1) {
+            try {
+              if (value[paths[0]] !== undefined) {
+                result[i] += value[paths[0]];
+              }
+            } catch (error) {}
+          }
+          if (paths.length == 2) {
+            try {
+              if (value[paths[0]][paths[1]] !== undefined) {
+                result[i] += value[paths[0]][paths[1]];
+              }
+            } catch (error) {}
+            if (value[paths[0]][paths[1]] !== undefined) {
+              result[i] += value[paths[0]][paths[1]];
+            }
+          }
+          if (paths.length == 3) {
+            try {
+              if (value[paths[0]][paths[1]][paths[2]] !== undefined) {
+                result[i] += value[paths[0]][paths[1]][paths[2]];
+              }
+            } catch (error) {}
+          }
+        }
+      } else {
+        if (result.length === 0) {
+          result.push(0);
+        }
+        result[0] += value;
+      }
+    });
+    var avg = [];
+    result.forEach(r => avg.push(r / this.length));
+    return avg;
+  },
+  writable: true,
+  configurable: true
+});
+
 Object.defineProperty(Array.prototype, 'Min', {
   value: function Min() {
     var result = [];

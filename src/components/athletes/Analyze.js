@@ -20,10 +20,6 @@ const Tab = ({ children }) => {
 };
 
 export default class Analyze extends Component {
-  // static propTypes = {
-  //     prop: PropTypes
-  // }
-
   constructor(props) {
     super(props);
     this.state = {
