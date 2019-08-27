@@ -1,4 +1,3 @@
-import { PersonalBest } from './personalBest';
 import { Stats } from './stats';
 import { Exercises } from './exercises';
 

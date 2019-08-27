@@ -7,7 +7,6 @@ import PersonalBests from './PersonalBest';
 import { Tab } from 'semantic-ui-react';
 import MonthCalendar from './MonthCalendar';
 import PeriodView from './PeriodView';
-import { Athlete } from '../../models/athlete';
 import { DataProvider } from '../../providers/data/dataProvider';
 
 const { Option } = Select;
@@ -29,13 +28,15 @@ export default class MonthCalendarContainer extends Component {
       selectedExerciseIndex: 0,
       rangeSelected: false
     };
-    var provider = new DataProvider();
-    provider.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
-    this.athlete = new Athlete('Magda', 'Niewoudt', 63, 1);
+    // this.athlete = new Athlete('Magda', 'Niewoudt', 63, 1);
   }
 
   componentDidMount = async () => {
+    var provider = new DataProvider();
+    this.athlete = await provider.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
     await this.athlete.loadSessionData();
+
+    // await this.athlete.loadSessionData();
     this.athlete.getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31));
 
     var exercises = this.athlete.exercises.map(e => e.exercise);
@@ -43,48 +44,6 @@ export default class MonthCalendarContainer extends Component {
       date: e.date,
       exercises: [...new Set(e.exercises.map(x => x.exercise))]
     }));
-    this.setState({
-      availableExercises: exercises,
-      exerciseDays: exerciseDays,
-      loading: false
-    });
-
-    // this.transformer.getData(1).then(data => {
-    //     this.expanded = Expander(data);
-    //     this.statsProvider = new StatsProvider(this.expanded);
-    //     this.getInitialStats();
-    // });
-  };
-
-  getInitialStats = () => {
-    const { range } = this.state;
-    const filter = {
-      fullDate: {
-        filter: true,
-        values: [range.from, range.to],
-        compare: 'between'
-      }
-    };
-    var stats = this.statsProvider.filterSessionsBy(filter);
-    this.seasonBest = this.statsProvider.personalBestsForPeriod(filter);
-    const distinctDates = [
-      ...new Set(
-        stats.map(x => new Date(new Date(x.date).toISOString().slice(0, 10)))
-      )
-    ];
-
-    var exerciseDays = [];
-    for (var day in distinctDates) {
-      var date = new Date(distinctDates[day]).toISOString().slice(0, 10);
-      var sessions = stats.filter(session => {
-        return session.date === date;
-      });
-      exerciseDays.push({
-        date: date,
-        exercises: [...new Set(sessions.map(x => x.exercise))]
-      });
-    }
-    const exercises = [...new Set(stats.map(x => x.exercise))];
     this.setState({
       availableExercises: exercises,
       exerciseDays: exerciseDays,
@@ -151,7 +110,7 @@ export default class MonthCalendarContainer extends Component {
 
   getPeriodStats = () => {
     const { selectedExercises, range } = this.state;
-
+    console.log('range', range);
     const filter = {
       fullDate: {
         filter: true,

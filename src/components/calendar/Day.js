@@ -546,7 +546,6 @@ export default class Day extends Component {
     if (sides.length > 1) {
       sides.unshift('Both');
     }
-    console.log('sides', sides);
     this.setState(
       {
         sidesForExercise: sides,

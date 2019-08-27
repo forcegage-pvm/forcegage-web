@@ -68,6 +68,7 @@ export default class MonthCalendar extends Component {
         <div className="main-calendar">
           <div>
             <DayPicker
+              width={200}
               className="Selectable"
               selectedDays={[from, { from, to }]}
               showWeekNumbers

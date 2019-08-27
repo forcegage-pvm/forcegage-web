@@ -6,9 +6,7 @@ export class Day {
     this.date = new Date(date);
     this.AM = { sessions: [] };
     this.PM = { sessions: [] };
-
     this.getSetData(data, bodyWeight, statsProvider);
-
     // console.log("Day", this)
   }
 

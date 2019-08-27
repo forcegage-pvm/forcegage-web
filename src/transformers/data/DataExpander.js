@@ -1,7 +1,6 @@
 export default function Expander(data) {
-  console.log('data', data);
   // var dataPerson = data.person;
-  var dataPerson = data.person;
+  var dataPerson = data;
   var person = {
     id: dataPerson.id,
     sessions: [],
@@ -11,15 +10,17 @@ export default function Expander(data) {
   };
   var dataSessions = dataPerson.sessions;
   // extract all sessions and expand them
-  var sessionId = 0;
-  console.log('dataSessions', dataSessions);
+  var sessionId = -1;
+  var setId = -1;
+  var repId = -1;
+  var statId = -1;
   dataSessions.forEach((s, index) => {
-    sessionId = s.id;
+    sessionId++;
     var date = new Date(s.timestamp);
     var session = {
       sessionId: sessionId,
       exercise: s.exercise,
-      weight: s.weight,
+      weight: Number(s.weight),
       year: date.getFullYear(),
       month: date.getMonth() + 1,
       day: date.getDate(),
@@ -31,42 +32,77 @@ export default function Expander(data) {
       timestamp: s.timestamp,
       hour: date.getHours(),
       time: date.toLocaleTimeString(),
-      timeOfDay: date.getHours() < 12 ? 'AM' : 'PM'
+      timeOfDay: date.getHours() < 12 ? 'AM' : 'PM',
+      sessionType: s.sessionType,
+      testSession: s.testSession
     };
+    if (session.sessionType === 'test') {
+      var dateIndex = session.testSession.indexOf(')') + 1;
+      session.testDate = new Date(
+        session.testSession.slice(dateIndex + 1, dateIndex + 11)
+      );
+      session.testId = Number(session.testSession.slice(1, dateIndex - 1));
+    }
     s.id = sessionId;
-    console.log('session', session);
     // extract all sets and expand them
-    var dataSets = s.exerciseSets;
+    var dataSets = s.sets;
     dataSets.forEach((st, index) => {
+      setId++;
       var set = {
-        setId: st.id,
+        setId: setId,
         sessionId: sessionId,
         side: st.side,
-        timestamp: st.timestamp
+        timestamp: s.timestamp
       };
-      var dataReps = st.exerciseReps;
+      var dataReps = st.reps;
       dataReps.forEach(r => {
+        repId++;
         var rep = {
-          repId: r.id,
-          setId: st.id,
+          repId: repId,
+          setId: setId,
           sessionId: sessionId,
           side: r.side,
-          timestamp: r.timestamp
+          timestamp: s.timestamp
         };
-        var dataStats = r.statistics;
-        dataStats.forEach(sc => {
-          var stat = {
-            repId: r.id,
-            setId: st.id,
-            sessionId: sessionId,
-            statId: sc.id,
-            class: sc.class,
-            aggregation: sc.aggregation,
-            type: sc.type,
-            value: sc.value
-          };
-          // push stat
-          person.stats.push(stat);
+        Object.keys(r).forEach(function(type, index) {
+          if (typeof r[type] === 'object') {
+            statId++;
+            var sc = r[type];
+            Object.keys(sc).forEach(function(cls, index) {
+              if (
+                cls === 'avg' ||
+                cls === 'max' ||
+                cls === 'tm' ||
+                cls === 'min'
+              ) {
+                var stat = {
+                  repId: repId,
+                  setId: setId,
+                  sessionId: sessionId,
+                  statId: statId,
+                  class: 'Total',
+                  aggregation: cls,
+                  type: type,
+                  value: sc[cls]
+                };
+                person.stats.push(stat);
+              } else {
+                Object.keys(sc[cls]).forEach(function(agr, index) {
+                  var stat = {
+                    repId: repId,
+                    setId: setId,
+                    sessionId: sessionId,
+                    statId: statId,
+                    class: cls,
+                    aggregation: agr,
+                    type: type,
+                    value: sc[cls][agr]
+                  };
+                  person.stats.push(stat);
+                });
+              }
+            });
+          }
         });
         // push rep
         person.reps.push(rep);

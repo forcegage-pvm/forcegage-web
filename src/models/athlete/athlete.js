@@ -1,24 +1,59 @@
-import AthleteTransformer from '../transformers/data/athleteTransformer';
-import Expander from '../transformers/data/DataExpander';
-import StatsProvider from '../providers/data/StatsProvider';
 import { Day } from './day';
 import { Exercises } from './exercises';
+import { save } from 'save-file';
+import { observable } from 'mobx';
 
 const typesForPBs = ['force', 'fmax', 'power'];
 const bestSessionIndicator = 'force';
 
 export class Athlete {
-  constructor(name, surname, bodyWeight, id) {
-    this.name = name;
-    this.surname = surname;
-    this.bodyWeight = bodyWeight;
-    this.id = id;
-    this.loading = true;
-    this.loadSessionData.bind(this);
+  @observable firstName = 'json.firstName';
+
+  constructor() {
+    this.days = [];
+    this.sessions = [];
+    this._sessionId = 0;
+    this._setId = 0;
+    this._repId = 0;
+    this._statId = 0;
+    this._statsProvider = undefined;
     this.days = [];
   }
 
-  getPeriodData(from, to) {
+  fromJson(json) {
+    this.id = json.id;
+    this.firstName = json.firstName;
+    this.lastName = json.lastName;
+    this.bodyWeight = json.bodyWeight;
+    this.bodyWeights = json.bodyWeights;
+  }
+
+  addSessionFromJson(json) {
+    var session = {
+      sessionId: this._sessionId,
+      bodyWeight: json.bodyWeight,
+      exercise: json.exercise,
+      notes: json.notes,
+      sessionType: json['session-type'],
+      testSession: json['test-session'],
+      side: json.side,
+      timestamp: json.timestamp,
+      weight: json.weight,
+      sets: json.sets
+    };
+    session.sets.forEach(set => {
+      set['setId'] = this._setId;
+      this._setId++;
+      set.reps.forEach(rep => {
+        rep['repId'] = this._repId;
+        this._repId++;
+      });
+    });
+    this._sessionId++;
+    this.sessions.push(session);
+  }
+
+  async getPeriodData(from, to) {
     var periodData = this.days.filter(
       day => day.date >= from && day.date <= to
     );
@@ -32,20 +67,64 @@ export class Athlete {
         from: from,
         to: to
       },
-      days: this.days,
+      exerciseDays: this.days,
       summary: summary
     };
-    // console.log("result", result)
+    console.log('result', result);
+    // this.normalizeData(result)
     return result;
   }
 
-  async getSessionData() {
-    this._transformer = new AthleteTransformer();
-    var data = await this._transformer.getData(this.id);
-    this._data = data;
-    this._expanded = Expander(this._data);
-    this._statsProvider = new StatsProvider(this._expanded);
+  async normalizeData(data) {
+    var result = [];
+    var header = 'from, to, exercise, weight, side, type, name, value';
+    result.push(header);
+    data.summary.exercises.forEach(ex => {
+      ex.weights.forEach(w => {
+        w.sides.forEach(s => {
+          s.average.forEach(a => {
+            var record = `${data.period.from
+              .toISOString()
+              .slice(0, 10)}, ${data.period.to.toISOString().slice(0, 10)}, ${
+              ex.exercise
+            }, ${w.weight}, ${s.side}, average, ${a.name}, ${a.value}`;
+            result.push(record);
+          });
+          s.best.forEach(a => {
+            var record = `${data.period.from
+              .toISOString()
+              .slice(0, 10)}, ${data.period.to.toISOString().slice(0, 10)}, ${
+              ex.exercise
+            }, ${w.weight}, ${s.side}, best, ${a.name}, ${a.value}`;
+            result.push(record);
+          });
+        });
+      });
+    });
+    var output = '';
+    result.forEach(r => {
+      if (output === '') {
+        output = r + +'\r\n';
+      } else {
+        output = output + r + '\r\n';
+      }
+    });
 
+    await save(output, 'data.json');
+  }
+
+  async loadSessionData() {
+    let self = this;
+
+    var promise = new Promise(function(resolve, reject) {
+      var athlete = self.getSessionData();
+      resolve(athlete);
+    });
+    await promise;
+    return this;
+  }
+
+  async getSessionData() {
     var stats = this._statsProvider.filterStatsBy({}, true, true, true);
     this.sessions = stats.sessions;
     this.sets = stats.sets;
@@ -285,48 +364,13 @@ export class Athlete {
     return this;
   }
 
-  async loadSessionData() {
-    this._transformer = new AthleteTransformer();
-    let self = this;
-
-    var promise = new Promise(function(resolve, reject) {
-      var athlete = self.getSessionData();
-      resolve(athlete);
-    });
-    await promise;
-    return this;
-  }
-
-  getDay(day) {
-    return this.exerciseDays.find(exerciseDay => exerciseDay.date === day);
-  }
-
-  getPersonalBest = (day, exercise, method) => {
-    var exerciseDay = this.getDay(day).exercises.find(
-      e => e.exercise === exercise
-    );
-    var personalBest = { date: {} };
-    if (exerciseDay.stats.length !== 0) {
-      typesForPBs.forEach(type => {
-        var filteredStats = this._statsProvider.filterStats(
-          exerciseDay.stats,
-          'Total',
-          type,
-          method
-        );
-        var max = filteredStats.Max('value')[0];
-        personalBest[type] = max;
-        var record = filteredStats.find(stat => stat.value == max);
-        var session = this.sessions.find(s => s.sessionId === record.sessionId);
-        personalBest.date[type] = session.date;
-      });
-      return personalBest;
-    }
-  };
-
   getRange(from, to) {
     return this.exerciseDays.filter(
       exerciseDay => exerciseDay.date >= from && exerciseDay.date <= to
     );
+  }
+
+  getDay(day) {
+    return this.exerciseDays.find(exerciseDay => exerciseDay.date === day);
   }
 }
