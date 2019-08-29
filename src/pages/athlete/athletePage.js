@@ -11,7 +11,6 @@ export default class AthletePage extends Component {
       mounted: false
     };
     this.setStateFromProps(props);
-    this.store = GetStore();
   }
 
   setStateFromProps = props => {
@@ -31,8 +30,12 @@ export default class AthletePage extends Component {
   render() {
     return (
       <div className="main">
-        <div className="main-menu">{AthleteMenu}</div>
-        <div className="main-content">{AthleteContent}</div>
+        <div className="main-menu">
+          <AthleteMenu />
+        </div>
+        <div className="main-content">
+          <AthleteContent />
+        </div>
       </div>
     );
   }

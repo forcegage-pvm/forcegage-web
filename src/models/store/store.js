@@ -1,4 +1,8 @@
 import { DataProvider } from '../../providers/data/dataProvider';
+import { Athlete } from '../../models/athlete/athlete';
+import { State } from './state';
+import { Period } from './period';
+import { observable, action, decorate } from 'mobx';
 
 var store = (function() {
   var instance;
@@ -24,13 +28,36 @@ export function GetStore() {
 
 class Store {
   constructor(brand) {
+    this.athlete = new Athlete();
+    this.state = new State();
     this.initStore();
   }
 
   async initStore() {
-    var provider = new DataProvider();
-    this.athlete = await provider.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
-    await this.athlete.loadSessionData();
-    this.athlete.getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31));
+    this._provider = new DataProvider();
+    this.loadAthlete();
+  }
+
+  async loadAthlete() {
+    this._provider
+      .loadAthlete('Glwok6yOD5CgxJJ8x3aq', this.athlete)
+      .then(() => {
+        console.log('athlete loaded');
+        this.athlete.loadSessionData().then(athlete => {
+          console.log('sessions loaded');
+          console.log('Athlete:', athlete);
+          this.athlete
+            .getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31))
+            .then(() => {
+              console.log('result', this.athlete.period);
+            });
+        });
+      });
   }
 }
+
+decorate(Store, {
+  athlete: observable,
+  state: observable,
+  loadAthlete: action
+});

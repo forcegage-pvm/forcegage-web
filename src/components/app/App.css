@@ -1,7 +1,7 @@
 .App {
   background-color: white;
   height: 100%;
-  margin-left: 20px;
+  margin-left: 0px;
 }
 
 .Menu {
@@ -14,7 +14,7 @@
   height: -1px;
   min-height: 15px;
   block-size: 20px;
-  color: #a89b97;
+  color: #922200;
 }
 
 .Menu-header {

@@ -1,4 +1,3 @@
-
 export class Exercises {
   constructor(sessions) {
     this.exercises = this.getExerciseData(sessions);
@@ -15,12 +14,14 @@ export class Exercises {
       var es = sessions.filter(s => s.exercise === e);
       // * Get exercise/test session grouping
       var sessionTypes = [...new Set(es.map(s => s.sessionType))];
-      var types = []
-      sessionTypes.map(t => types.push({
-        type: t,
-        weights: [],
-        sides: [],
-      }))
+      var types = [];
+      sessionTypes.map(t =>
+        types.push({
+          type: t,
+          weights: [],
+          sides: []
+        })
+      );
       // * get the distinct list of @param weights for this exercise
       var weights = [...new Set(es.map(s => Number(s.weight)))];
       var exerciseData = {
@@ -28,7 +29,7 @@ export class Exercises {
         sessionTypes: types,
         summary: {
           weights: [],
-          sides: [],
+          sides: []
         }
       };
 
@@ -45,21 +46,29 @@ export class Exercises {
       var distinctSides = this.getSidesSummary(es, exerciseData.summary.sides);
       // we have Left/Right - add summary to exercise
       if (distinctSides.length === 2) {
-        exerciseData.summary.average = this.getAvgForExercise(exerciseData.summary.weights);
-        exerciseData.summary.best = this.getBestForExercise(exerciseData.summary.weights, es);
-        // we should then only have {Both}  
+        exerciseData.summary.average = this.getAvgForExercise(
+          exerciseData.summary.weights
+        );
+        exerciseData.summary.best = this.getBestForExercise(
+          exerciseData.summary.weights,
+          es
+        );
+        // we should then only have {Both}
       } else {
-        var both = exerciseData.summary.sides.find(side => side.side === 'Both');
+        var both = exerciseData.summary.sides.find(
+          side => side.side === 'Both'
+        );
         if (both !== undefined) {
           exerciseData.summary.average = both.average;
           exerciseData.summary.best = both.best;
         }
       }
-      // console.log("exerciseData", exerciseData)
       exerciseData.sessionTypes.forEach(t => {
         // {e} is the current exercise
         // * filtered sessions based on the current exercise (e)
-        var est = sessions.filter(s => s.exercise === e && s.sessionType === t.type);
+        var est = sessions.filter(
+          s => s.exercise === e && s.sessionType === t.type
+        );
         // * get the distinct list of @param weights for this exercise
         var typeWeights = [...new Set(est.map(s => Number(s.weight)))];
         // # iterates weights and get the summary information
@@ -77,7 +86,7 @@ export class Exercises {
         if (distinctSides.length === 2) {
           t.average = this.getAvgForExercise(t.weights);
           t.best = this.getBestForExercise(t.weights, est);
-          // we should then only have {Both}  
+          // we should then only have {Both}
         } else {
           var both = t.sides.find(side => side.side === 'Both');
           if (both !== undefined) {
@@ -85,11 +94,11 @@ export class Exercises {
             t.best = both.best;
           }
         }
-      })
+      });
       result.push(exerciseData);
     });
-    this.sortData(result)
-    this.getDeviation(result)
+    this.sortData(result);
+    this.getDeviation(result);
     return result;
   }
 
@@ -127,48 +136,52 @@ export class Exercises {
   sortData(data) {
     data.forEach(e => {
       e.summary.weights.sort((x, y) => (x.weight > y.weight ? 1 : -1));
-      e.summary.weights.forEach(w => w.sides.sort((x, y) => (x.side > y.side ? 1 : -1)));
+      e.summary.weights.forEach(w =>
+        w.sides.sort((x, y) => (x.side > y.side ? 1 : -1))
+      );
       e.summary.sides.sort((x, y) => (x.side > y.side ? 1 : -1));
-    })
+    });
   }
 
   getDeviation(data) {
     data.forEach(e => {
       for (var i = 0; i < e.summary.weights.length - 1; i++) {
-        var weight = e.summary.weights[i]
-        var nextWeight = e.summary.weights[i + 1]
+        var weight = e.summary.weights[i];
+        var nextWeight = e.summary.weights[i + 1];
         weight.average.forEach(s => {
-          var nextStat = nextWeight.average.find(a => a.name === s.name)
-          var def = (1 - (s.value / nextStat.value))
-          nextStat['deviation'] = def
-          nextStat['deviation/kg'] = (nextStat.value - s.value) / nextWeight.weight
-        })
+          var nextStat = nextWeight.average.find(a => a.name === s.name);
+          var def = 1 - s.value / nextStat.value;
+          nextStat['deviation'] = def;
+          nextStat['deviation/kg'] =
+            (nextStat.value - s.value) / nextWeight.weight;
+        });
         weight.best.forEach(s => {
-          var nextStat = nextWeight.best.find(a => a.name === s.name)
-          var def = (1 - (s.value / nextStat.value))
-          nextStat['deviation'] = def
-          nextStat['deviation/kg'] = (nextStat.value - s.value) / nextWeight.weight
-        })
-        this.getSideDeviation(weight.sides)
+          var nextStat = nextWeight.best.find(a => a.name === s.name);
+          var def = 1 - s.value / nextStat.value;
+          nextStat['deviation'] = def;
+          nextStat['deviation/kg'] =
+            (nextStat.value - s.value) / nextWeight.weight;
+        });
+        this.getSideDeviation(weight.sides);
       }
-      this.getSideDeviation(e.summary.sides)
-    })
+      this.getSideDeviation(e.summary.sides);
+    });
   }
 
   getSideDeviation(sides) {
     for (var i = 0; i < sides.length - 1; i++) {
-      var side = sides[i]
-      var nextSide = sides[i + 1]
+      var side = sides[i];
+      var nextSide = sides[i + 1];
       side.average.forEach(s => {
-        var nextStat = nextSide.average.find(a => a.name === s.name)
-        var def = (1 - (s.value / nextStat.value))
-        nextStat['deviation'] = def
-      })
+        var nextStat = nextSide.average.find(a => a.name === s.name);
+        var def = 1 - s.value / nextStat.value;
+        nextStat['deviation'] = def;
+      });
       side.best.forEach(s => {
-        var nextStat = nextSide.best.find(a => a.name === s.name)
-        var def = (1 - (s.value / nextStat.value))
-        nextStat['deviation'] = def
-      })
+        var nextStat = nextSide.best.find(a => a.name === s.name);
+        var def = 1 - s.value / nextStat.value;
+        nextStat['deviation'] = def;
+      });
     }
   }
 
@@ -258,12 +271,12 @@ export class Exercises {
     });
   }
 
-  getSideSummary(es, side, type, sessions) {
+  getSideSummary(es, sideName, type, sessions) {
     var sidesAvg = [];
     var summaryStats = [];
     var stats = {};
     es.forEach(s => {
-      var sides = s.sides.filter(s => s.side === side);
+      var sides = s.sides.filter(s => s.side === sideName);
       sides.forEach(side => sidesAvg.push(side[type]));
     });
     sidesAvg.forEach((side, index) => {
@@ -272,9 +285,12 @@ export class Exercises {
         stats.forEach(st => (st.values = [st.value]));
       } else {
         side.forEach((stat, idx) => {
-          var st = stats[idx];
-          st.value += stat.value;
-          st.values.push(stat.value);
+          var name = stat['name'];
+          var st = stats.find(sx => sx['name'] === name);
+          if (st !== undefined) {
+            st.value += stat.value;
+            st.values.push(stat.value);
+          }
         });
       }
     });
@@ -320,8 +336,11 @@ export class Exercises {
     weights.forEach(weight => {
       var sideStats = this.getAvgForWeight(weight.sides);
       sideStats.forEach((stat, index) => {
-        var newStat = stats[index];
-        newStat.value += stat.value;
+        var name = stat['name'];
+        var newStat = stats.find(sx => sx['name'] === name);
+        if (newStat !== undefined) {
+          newStat.value += stat.value;
+        }
       });
     });
     stats.forEach((stat, index) => {
@@ -341,8 +360,11 @@ export class Exercises {
     weights.forEach(weight => {
       var sideStats = this.getBestForWeight(weight.sides, sessions);
       sideStats.forEach((stat, index) => {
-        var newStat = bestStats[index];
-        newStat.values.push(stat.value);
+        var name = stat['name'];
+        var newStat = bestStats.find(sx => sx['name'] === name);
+        if (newStat !== undefined) {
+          newStat.values.push(stat.value);
+        }
       });
     });
     bestStats.forEach(stat => {
@@ -437,6 +459,3 @@ export class Exercises {
     return distinctSides;
   }
 }
-
-
-

@@ -1,0 +1,52 @@
+import { observable, computed } from 'mobx';
+
+export default class Athlete {
+    @observable firstName: string = "";
+    @observable lastName: string = "";
+    @observable bodyWeight: Number = -1;
+    bodyWeights: [] = [];
+    sessions: [] = [];
+    private lastSessionId = 0;
+    private lastSetId = 0;
+    private lastRepId = 0;
+
+    @computed get fullName() {
+        return this.firstName + " " + this.lastName;
+    }
+
+    constructor(public id: string) {
+    }
+
+    fromJson(json: any) {
+        this.id = json.id;
+        this.firstName = json.firstName;
+        this.lastName = json.lastName;
+        this.bodyWeight = json.bodyWeight;
+        this.bodyWeights = json.bodyWeights;
+    }
+
+    addSessionFromJson(json: any) {
+        var session = {
+          sessionId: this.lastSessionId,
+          bodyWeight: json.bodyWeight,
+          exercise: json.exercise,
+          notes: json.notes,
+          sessionType: json['session-type'],
+          testSession: json['test-session'],
+          side: json.side,
+          timestamp: json.timestamp,
+          weight: json.weight,
+          sets: json.sets
+        };
+        session.sets.forEach(set  => {
+          set['setId'] = this.lastSetId;
+          this.lastSetId++;
+          set.reps.forEach(rep => {
+            rep['repId'] = this.lastRepId;
+            this.lastRepId++;
+          });
+        });
+        this.lastSessionId++;
+        this.sessions.push(session);
+      }
+}
