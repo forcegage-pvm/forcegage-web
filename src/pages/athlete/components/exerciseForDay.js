@@ -1,15 +1,30 @@
 import React, { Component } from 'react';
-import { Tag, Tooltip } from 'antd';
+import { Tag, Tooltip, Switch } from 'antd';
 import _ from 'lodash';
 import { observer } from 'mobx-react';
 import { GetStore } from '../../../models/store/store';
 import ReactTable from 'react-table';
 import { Icon } from 'semantic-ui-react';
+import uniqid from 'uniqid';
 
 import 'react-table/react-table.css';
 import '../athletePage.css';
 
 const sortOrder = ['Isometric', 'Throw-off', 'Constant Contact'];
+
+const maxRowStyle = {
+  backgroundColor: '#FFFFE8',
+  // backgroundColor: '#C83434',
+  borderTop: 'solid 0.1em #ECD6A4',
+  // borderTop: 'solid 0.1em #3D0000',
+  alignContent: 'center',
+  verticalAlign: 'middle',
+  padding: '1px',
+  paddingTop: '2.5px',
+  height: '28px',
+  fontWeight: '500',
+  color: '#00325F'
+};
 
 const ExerciseForDay = observer(
   class ExerciseForDay extends Component {
@@ -32,6 +47,7 @@ const ExerciseForDay = observer(
             desc: false
           }
         ],
+        hidden: [],
         maxPower: []
       };
       this.setStateFromProps(props);
@@ -49,6 +65,12 @@ const ExerciseForDay = observer(
       this.bestFMaxIndex = [];
       this.bestLeftFMaxIndex = [];
       this.bestRightFMaxIndex = [];
+      this.bestDisConIndex = [];
+      this.bestLeftDisConIndex = [];
+      this.bestRightDisConIndex = [];
+      this.bestDisEccIndex = [];
+      this.bestLeftDisEccIndex = [];
+      this.bestRightDisEccIndex = [];
     }
 
     setStateFromProps = props => {
@@ -185,6 +207,110 @@ const ExerciseForDay = observer(
       };
     };
 
+    getMaxDissConValues = row => {
+      const { data } = this.state;
+
+      var leftDiss = [];
+      var rightDiss = [];
+      var bothDiss = [];
+      row.row._subRows.forEach(sr => {
+        if (sr._subRows !== undefined) {
+          sr._subRows.forEach(ssr => {
+            if (ssr.side === 'Left') {
+              leftDiss.push(ssr['displacement-concentric']);
+            }
+            if (ssr.side === 'Right') {
+              rightDiss.push(ssr['displacement-concentric']);
+            }
+            if (ssr.side === 'Both') {
+              bothDiss.push(ssr['displacement-concentric']);
+            }
+          });
+        }
+      });
+      var leftMax = _.max(leftDiss);
+      var rightMax = _.max(rightDiss);
+      var bothMax = _.max(bothDiss);
+
+      var maxItem = data.find(d => d['displacement-concentric'] == leftMax);
+      if (maxItem !== undefined) {
+        this.bestLeftDisConIndex.push(maxItem.id);
+        this.bestLeftDisConIndex = [
+          ...new Set(this.bestLeftDisConIndex.map(x => x))
+        ];
+      }
+
+      maxItem = data.find(d => d['displacement-concentric'] == rightMax);
+      if (maxItem !== undefined) {
+        this.bestRightDisConIndex.push(maxItem.id);
+        this.bestRightDisConIndex = [
+          ...new Set(this.bestRightDisConIndex.map(x => x))
+        ];
+      }
+      maxItem = data.find(d => d['displacement-concentric'] == bothMax);
+      if (maxItem !== undefined) {
+        this.bestDisConIndex.push(maxItem.id);
+        this.bestDisConIndex = [...new Set(this.bestDisConIndex.map(x => x))];
+      }
+      return {
+        left: leftMax,
+        right: rightMax,
+        both: bothMax
+      };
+    };
+
+    getMaxDissEccValues = row => {
+      const { data } = this.state;
+
+      var leftDiss = [];
+      var rightDiss = [];
+      var bothDiss = [];
+      row.row._subRows.forEach(sr => {
+        if (sr._subRows !== undefined) {
+          sr._subRows.forEach(ssr => {
+            if (ssr.side === 'Left') {
+              leftDiss.push(ssr['displacement-eccentric']);
+            }
+            if (ssr.side === 'Right') {
+              rightDiss.push(ssr['displacement-eccentric']);
+            }
+            if (ssr.side === 'Both') {
+              bothDiss.push(ssr['displacement-eccentric']);
+            }
+          });
+        }
+      });
+      var leftMax = _.max(leftDiss);
+      var rightMax = _.max(rightDiss);
+      var bothMax = _.max(bothDiss);
+
+      var maxItem = data.find(d => d['displacement-eccentric'] == leftMax);
+      if (maxItem !== undefined) {
+        this.bestLeftDisEccIndex.push(maxItem.id);
+        this.bestLeftDisEccIndex = [
+          ...new Set(this.bestLeftDisEccIndex.map(x => x))
+        ];
+      }
+
+      maxItem = data.find(d => d['displacement-eccentric'] == rightMax);
+      if (maxItem !== undefined) {
+        this.bestRightDisEccIndex.push(maxItem.id);
+        this.bestRightDisEccIndex = [
+          ...new Set(this.bestRightDisEccIndex.map(x => x))
+        ];
+      }
+      maxItem = data.find(d => d['displacement-eccentric'] == bothMax);
+      if (maxItem !== undefined) {
+        this.bestDisEccIndex.push(maxItem.id);
+        this.bestDisEccIndex = [...new Set(this.bestDisEccIndex.map(x => x))];
+      }
+      return {
+        left: leftMax,
+        right: rightMax,
+        both: bothMax
+      };
+    };
+
     getMaxPowerValues = row => {
       const { data } = this.state;
 
@@ -285,8 +411,23 @@ const ExerciseForDay = observer(
       };
     };
 
+    onSwitchDeviations = checked => {
+      const { hidden } = this.state;
+      if (!checked) {
+        hidden.push('deviations');
+        this.setState({
+          hidden: hidden
+        });
+      } else {
+        _.pull(hidden, 'deviations');
+        this.setState({
+          hidden: hidden
+        });
+      }
+    };
+
     render() {
-      const { day, data } = this.state;
+      const { day, data, hidden } = this.state;
 
       if (this.athlete.loaded) {
         var dayData = this.athlete.period.exerciseDays.find(
@@ -299,6 +440,18 @@ const ExerciseForDay = observer(
 
       return (
         <div>
+          <div style={{ marginBottom: '10px' }}>
+            <span>
+              <span style={{ color: '#003463', fontWeight: '300' }}>
+                Show deviations
+              </span>{' '}
+              <Switch
+                size="small"
+                defaultChecked
+                onChange={this.onSwitchDeviations}
+              />
+            </span>
+          </div>
           <ReactTable
             style={{ width: '70%' }}
             data={sortedData}
@@ -324,17 +477,79 @@ const ExerciseForDay = observer(
                     show: false,
                     aggregate: vals => getUniqArrayStr(vals)
                   },
+                  // {
+                  //   Header: 'Exercise',
+                  //   id: 'exercise',
+                  //   show: false,
+                  //   accessor: d => d.exerciseSubClass,
+                  //   aggregate: vals => getUniqArrayStr(vals)
+                  // },
                   {
-                    Header: 'Exercise',
-                    id: 'exercise',
-                    show: false,
-                    accessor: d => d.exerciseSubClass,
-                    aggregate: vals => getUniqArrayStr(vals)
+                    Header: 'Type',
+                    id: 'type',
+                    width: 150,
+                    Pivot: cellInfo => {
+                      if (cellInfo.isExpanded) {
+                        return (
+                          <div className="expand">
+                            <div className="expand-icon">
+                              <i class="fa fa-caret-down"></i>
+                            </div>
+                            <div className="expand-value">{cellInfo.value}</div>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="expand">
+                            <div className="expand-icon">
+                              <i class="fa fa-caret-right"></i>
+                            </div>
+                            <div className="expand-value">{cellInfo.value}</div>
+                          </div>
+                        );
+                      }
+                    },
+                    accessor: d => d.type,
+                    aggregate: vals => getUniqArrayStr(vals),
+                    sortMethod: (a, b) => {
+                      if (a === b) {
+                        return 0;
+                      }
+                      var aIndex = sortOrder.indexOf(a);
+                      var bIndex = sortOrder.indexOf(b);
+                      return aIndex > bIndex ? 1 : -1;
+                    },
+                    filterMethod: (filter, row) => {
+                      if (filter.value === 'all') {
+                        return true;
+                      }
+                      return row[filter.id].includes(filter.value);
+                    },
+                    Filter: ({ filter, onChange }) => {
+                      this.bestPowerIndex = [];
+                      var types = [...new Set(data.map(x => x.type))];
+                      return (
+                        <select
+                          onChange={event => onChange(event.target.value)}
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#00194E',
+                            color: 'white'
+                          }}
+                          value={filter ? filter.value : 'all'}
+                        >
+                          <option value="all">All</option>
+                          {types.map(type => (
+                            <option value={type}>{type}</option>
+                          ))}
+                        </select>
+                      );
+                    }
                   },
                   {
                     Header: 'Group',
                     id: 'group',
-                    minWidth: 60,
+                    width: 90,
                     accessor: d => d.group,
                     aggregate: vals => getUniqArrayStr(vals),
                     Pivot: cellInfo => {
@@ -402,74 +617,25 @@ const ExerciseForDay = observer(
                       );
                     }
                   },
-                  {
-                    Header: 'Type',
-                    id: 'type',
-                    Pivot: cellInfo => {
-                      if (cellInfo.isExpanded) {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i class="fa fa-caret-down"></i>
-                            </div>
-                            <div className="expand-value">{cellInfo.value}</div>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i class="fa fa-caret-right"></i>
-                            </div>
-                            <div className="expand-value">{cellInfo.value}</div>
-                          </div>
-                        );
-                      }
-                    },
-                    accessor: d => d.type,
-                    aggregate: vals => getUniqArrayStr(vals),
-                    sortMethod: (a, b) => {
-                      if (a === b) {
-                        return 0;
-                      }
-                      var aIndex = sortOrder.indexOf(a);
-                      var bIndex = sortOrder.indexOf(b);
-                      return aIndex > bIndex ? 1 : -1;
-                    },
-                    filterMethod: (filter, row) => {
-                      if (filter.value === 'all') {
-                        return true;
-                      }
-                      return row[filter.id].includes(filter.value);
-                    },
-                    Filter: ({ filter, onChange }) => {
-                      this.bestPowerIndex = [];
-                      var types = [...new Set(data.map(x => x.type))];
-                      return (
-                        <select
-                          onChange={event => onChange(event.target.value)}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#00194E',
-                            color: 'white'
-                          }}
-                          value={filter ? filter.value : 'all'}
-                        >
-                          <option value="all">All</option>
-                          {types.map(type => (
-                            <option value={type}>{type}</option>
-                          ))}
-                        </select>
-                      );
-                    }
-                  },
+
                   {
                     Header: 'Weight',
                     id: 'weight',
-                    minWidth: 45,
+                    width: 65,
                     accessor: d => d.weight,
                     aggregate: (vals, rows) => {
                       return getUniqArrayStr(vals, rows);
+                    },
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
                     },
                     Cell: row => {
                       if (row.level <= 1) {
@@ -483,6 +649,30 @@ const ExerciseForDay = observer(
                           >
                             {row.value}
                           </div>
+                        );
+                      }
+                      if (row.value === 999999) {
+                        const padding = {
+                          paddingLeft: '10px',
+                          paddingRight: '10px'
+                        };
+                        if (row.row.side === 'Left') {
+                          return (
+                            <span className="best-power-left" style={padding}>
+                              {'Max'}
+                            </span>
+                          );
+                        } else if (row.row.side === 'Right') {
+                          return (
+                            <span className="best-power-right" style={padding}>
+                              {'Max'}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="best-power-both" style={padding}>
+                            {'Max'}
+                          </span>
                         );
                       }
                       return <span className="tag-weight">{row.value}</span>;
@@ -525,9 +715,20 @@ const ExerciseForDay = observer(
                   {
                     Header: 'Side',
                     id: 'side',
-                    minWidth: 60,
+                    width: 75,
                     accessor: 'side',
                     aggregate: vals => getUniqArrayStr(vals),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (row.level >= 2) {
                         if (row.value === 'Left') {
@@ -611,14 +812,30 @@ const ExerciseForDay = observer(
                 )
               },
               {
-                Header: 'Power',
+                Header: 'Power(W)',
+                headerStyle: {
+                  backgroundColor: '#EDF8FF',
+                  color: 'black',
+                  fontWeight: '500'
+                },
                 columns: [
                   {
-                    Header: 'Power(W)',
+                    Header: 'Power',
                     accessor: 'power',
                     filterable: false,
                     width: 65,
                     className: 'cell-value',
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     aggregate: vals => ({
                       mean: Number(_.mean(vals)),
                       max: Number(_.max(vals))
@@ -683,6 +900,9 @@ const ExerciseForDay = observer(
                       if (row.row.type === 'Isometric') {
                         return null;
                       }
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       var max = data.find(d => {
                         return (
                           (this.bestPowerIndex.includes(d.id) ||
@@ -729,11 +949,22 @@ const ExerciseForDay = observer(
                     }
                   },
                   {
-                    Header: 'Max(W)',
+                    Header: 'Max',
                     accessor: 'best:power',
                     filterable: false,
                     width: 65,
                     className: 'cell-value',
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     aggregate: vals => {
                       return {
                         mean: Number(_.mean(vals)),
@@ -804,6 +1035,9 @@ const ExerciseForDay = observer(
                       if (row.row.type === 'Isometric') {
                         return null;
                       }
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       var max = data.find(d => {
                         return (
                           (this.bestPowerIndex.includes(d.id) ||
@@ -853,8 +1087,20 @@ const ExerciseForDay = observer(
                     Header: 'Side deviation',
                     filterable: false,
                     accessor: 'power:deviation',
+                    show: !hidden.includes('deviations'),
                     width: 45,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (row.row.type === 'Isometric') {
                         return null;
@@ -891,8 +1137,20 @@ const ExerciseForDay = observer(
                     Header: 'Weight deviation',
                     filterable: false,
                     accessor: 'power:deviation:weight',
+                    show: !hidden.includes('deviations'),
                     width: 45,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (row.level === 1) {
                         return null;
@@ -953,14 +1211,30 @@ const ExerciseForDay = observer(
                 ]
               },
               {
-                Header: 'Force',
+                Header: 'Force(kgf)',
+                headerStyle: {
+                  backgroundColor: '#DAF0FE',
+                  color: 'black',
+                  fontWeight: '500'
+                },
                 columns: [
                   {
-                    Header: 'Force(kgf)',
+                    Header: 'Force',
                     accessor: 'force',
                     width: 60,
                     filterable: false,
                     className: 'cell-value',
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     aggregate: vals => ({
                       mean: Number(_.mean(vals)),
                       max: Number(_.max(vals))
@@ -1019,6 +1293,9 @@ const ExerciseForDay = observer(
                       );
                     },
                     Cell: row => {
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       var max = data.find(d => {
                         return (
                           (this.bestForceIndex.includes(d.id) ||
@@ -1062,11 +1339,22 @@ const ExerciseForDay = observer(
                     }
                   },
                   {
-                    Header: 'Max(kgf)',
+                    Header: 'Max',
                     accessor: 'fmax',
                     width: 60,
                     filterable: false,
                     className: 'cell-value',
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     aggregate: vals => ({
                       mean: Number(_.mean(vals)),
                       max: Number(_.max(vals))
@@ -1084,7 +1372,7 @@ const ExerciseForDay = observer(
                       var maxStr = undefined;
                       if (left !== undefined) {
                         maxStr = (
-                          <span className="best-power-both">
+                          <span className="tooltip-best">
                             <Icon name="angle left"></Icon>
                             {'Right: ' + left.toFixed(2)}
                           </span>
@@ -1095,7 +1383,7 @@ const ExerciseForDay = observer(
                           <div>
                             {maxStr}
                             <br></br>
-                            <span className="best-power-both">
+                            <span className="tooltip-best">
                               {'Left: ' + right.toFixed(2)}
                               <Icon name="angle right"></Icon>
                             </span>
@@ -1106,7 +1394,7 @@ const ExerciseForDay = observer(
                         maxStr = (
                           <div>
                             {maxStr}
-                            <span className="best-power-both">
+                            <span className="tooltip-best">
                               <Icon name="angle left"></Icon>
                               {'Both: ' + both.toFixed(2)}
                               <Icon name="angle right"></Icon>
@@ -1125,6 +1413,9 @@ const ExerciseForDay = observer(
                       );
                     },
                     Cell: row => {
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       const { data } = this.state;
                       var max = data.find(d => {
                         return (
@@ -1172,8 +1463,20 @@ const ExerciseForDay = observer(
                     Header: 'Side deviation',
                     filterable: false,
                     accessor: 'force:deviation',
+                    show: !hidden.includes('deviations'),
                     width: 45,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (row.level === 1) {
                         return null;
@@ -1207,8 +1510,20 @@ const ExerciseForDay = observer(
                     Header: 'Weight deviation',
                     filterable: false,
                     accessor: 'power:deviation:weight',
+                    show: !hidden.includes('deviations'),
                     width: 45,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (row.level === 1) {
                         return null;
@@ -1270,6 +1585,11 @@ const ExerciseForDay = observer(
               },
               {
                 Header: 'Displacement',
+                headerStyle: {
+                  backgroundColor: '#68C0E6',
+                  color: 'black',
+                  fontWeight: '500'
+                },
                 columns: [
                   {
                     Header: 'Concentric (degree)',
@@ -1277,8 +1597,85 @@ const ExerciseForDay = observer(
                     className: 'cell-value',
                     filterable: false,
                     width: 55,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
+                    aggregate: vals => ({
+                      mean: Number(_.mean(vals)),
+                      max: Number(_.max(vals))
+                    }),
+                    Aggregated: row => {
+                      if (row.row.type === 'Isometric') {
+                        return null;
+                      }
+                      var values = row.subRows.map(
+                        r => r['displacement-concentric']
+                      );
+                      if (isNaN(values[0])) {
+                        var valuesMean = values.map(p => p.mean);
+                        var mean = _.mean(valuesMean);
+                        //array
+                      } else {
+                        mean = _.mean(values);
+                      }
+                      const { left, right, both } = this.getMaxDissConValues(
+                        row
+                      );
+                      var maxStr = undefined;
+                      if (left !== undefined) {
+                        maxStr = (
+                          <span className="tooltip-best">
+                            <Icon name="angle left"></Icon>
+                            {'Right: ' + left.toFixed(2)}
+                          </span>
+                        );
+                      }
+                      if (right !== undefined) {
+                        maxStr = (
+                          <div>
+                            {maxStr}
+                            <br></br>
+                            <span className="tooltip-best">
+                              {'Left: ' + right.toFixed(2)}
+                              <Icon name="angle right"></Icon>
+                            </span>
+                          </div>
+                        );
+                      }
+                      if (both !== undefined) {
+                        maxStr = (
+                          <div>
+                            {maxStr}
+                            <span className="tooltip-best">
+                              <Icon name="angle left"></Icon>
+                              {'Both: ' + both.toFixed(2)}
+                              <Icon name="angle right"></Icon>
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <Tooltip title={maxStr}>
+                          <span style={{ height: '50px', cursor: 'pointer' }}>
+                            <span style={{ color: '#1F3371', height: '50px' }}>
+                              {mean.toFixed(2) + '    '}
+                            </span>
+                          </span>
+                        </Tooltip>
+                      );
+                    },
                     Cell: row => {
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       if (!isNaN(row.value)) {
                         const { data } = this.state;
                         var maxFiltered = data.filter(d => {
@@ -1292,11 +1689,35 @@ const ExerciseForDay = observer(
                         if (maxValues.length > 0) {
                           var max = _.max(maxValues);
                           var pct = row.value / max;
-                          return (
-                            <div style={{ color: this.getColor(pct) }}>
-                              {Number(row.value).toFixed(2) + ' '}&#176;
-                            </div>
-                          );
+                          if (this.bestDisConIndex.includes(row.original.id)) {
+                            return (
+                              <span className="best-power-both">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else if (
+                            this.bestLeftDisConIndex.includes(row.original.id)
+                          ) {
+                            return (
+                              <span className="best-power-left">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else if (
+                            this.bestRightDisConIndex.includes(row.original.id)
+                          ) {
+                            return (
+                              <span className="best-power-right">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <div style={{ color: this.getColor(pct) }}>
+                                {Number(row.value).toFixed(2)}&#176;
+                              </div>
+                            );
+                          }
                         }
                         return <div>{row.value}</div>;
                       } else return null;
@@ -1308,8 +1729,85 @@ const ExerciseForDay = observer(
                     className: 'cell-value',
                     width: 55,
                     filterable: false,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
+                    aggregate: vals => ({
+                      mean: Number(_.mean(vals)),
+                      max: Number(_.max(vals))
+                    }),
+                    Aggregated: row => {
+                      if (row.row.type === 'Isometric') {
+                        return null;
+                      }
+                      var values = row.subRows.map(
+                        r => r['displacement-eccentric']
+                      );
+                      if (isNaN(values[0])) {
+                        var valuesMean = values.map(p => p.mean);
+                        var mean = _.mean(valuesMean);
+                        //array
+                      } else {
+                        mean = _.mean(values);
+                      }
+                      const { left, right, both } = this.getMaxDissEccValues(
+                        row
+                      );
+                      var maxStr = undefined;
+                      if (left !== undefined) {
+                        maxStr = (
+                          <span className="tooltip-best">
+                            <Icon name="angle left"></Icon>
+                            {'Right: ' + left.toFixed(2)}
+                          </span>
+                        );
+                      }
+                      if (right !== undefined) {
+                        maxStr = (
+                          <div>
+                            {maxStr}
+                            <br></br>
+                            <span className="tooltip-best">
+                              {'Left: ' + right.toFixed(2)}
+                              <Icon name="angle right"></Icon>
+                            </span>
+                          </div>
+                        );
+                      }
+                      if (both !== undefined) {
+                        maxStr = (
+                          <div>
+                            {maxStr}
+                            <span className="tooltip-best">
+                              <Icon name="angle left"></Icon>
+                              {'Both: ' + both.toFixed(2)}
+                              <Icon name="angle right"></Icon>
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <Tooltip title={maxStr}>
+                          <span style={{ height: '50px', cursor: 'pointer' }}>
+                            <span style={{ color: '#1F3371', height: '50px' }}>
+                              {mean.toFixed(2) + '    '}
+                            </span>
+                          </span>
+                        </Tooltip>
+                      );
+                    },
                     Cell: row => {
+                      if (row.row._original.max) {
+                        return <div>{Number(row.value).toFixed(2)}</div>;
+                      }
                       if (!isNaN(row.value)) {
                         const { data } = this.state;
                         var maxFiltered = data.filter(d => {
@@ -1323,11 +1821,35 @@ const ExerciseForDay = observer(
                         if (maxValues.length > 0) {
                           var max = _.max(maxValues);
                           var pct = row.value / max;
-                          return (
-                            <div style={{ color: this.getColor(pct) }}>
-                              {Number(row.value).toFixed(2) + ' '}&#176;
-                            </div>
-                          );
+                          if (this.bestDisEccIndex.includes(row.original.id)) {
+                            return (
+                              <span className="best-power-both">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else if (
+                            this.bestLeftDisEccIndex.includes(row.original.id)
+                          ) {
+                            return (
+                              <span className="best-power-left">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else if (
+                            this.bestRightDisEccIndex.includes(row.original.id)
+                          ) {
+                            return (
+                              <span className="best-power-right">
+                                {Number(row.value).toFixed(2)}&#176;
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <div style={{ color: this.getColor(pct) }}>
+                                {Number(row.value).toFixed(2)}&#176;
+                              </div>
+                            );
+                          }
                         }
                         return <div>{row.value}</div>;
                       } else return null;
@@ -1345,6 +1867,17 @@ const ExerciseForDay = observer(
                     filterable: false,
                     width: 75,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => {
                       if (!isNaN(row.value)) {
                         return <div>{row.value}</div>;
@@ -1359,6 +1892,17 @@ const ExerciseForDay = observer(
                     width: 75,
                     filterable: false,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                    getProps: (state, rowInfo, column) => {
+                      if (
+                        rowInfo &&
+                        rowInfo.row._original &&
+                        rowInfo.row._original.max
+                      ) {
+                        return {
+                          style: maxRowStyle
+                        };
+                      } else return { style: {} };
+                    },
                     Cell: row => <div>{row.value}</div>
                   }
                 ]
@@ -1414,10 +1958,112 @@ const ExerciseForDay = observer(
           group: gg
         });
       });
+      console.log('gdata', gdata);
       this.getDeviations(gdata, data);
+      this.getMaxRows(gdata, data);
       console.log('data', data);
       return data;
     }
+
+    getMaxForProps = (groupData, side, name) => {
+      var side = _.filter(groupData, function(s) {
+        return s.side === side;
+      });
+      var max = _.max(_.map(side, name));
+      return max;
+    };
+
+    getMaxRows = (groupedTypeData, data) => {
+      // * gtd.type: Throw-off, Constant Contact, Isometric
+      groupedTypeData.forEach(gtd => {
+        // * group: single/double
+        Object.keys(gtd.group).forEach(key => {
+          var groupData = gtd.group[key];
+          if (key === 'single') {
+            if (groupData.length <= 2) {
+              return;
+            }
+            // insert 2 rows: Left/Right
+            var rowLeft = {};
+            var item = _.first(groupData);
+            Object.keys(item).forEach(name => {
+              if (
+                typeof item[name] === 'string' ||
+                item[name] instanceof String
+              ) {
+                rowLeft[name] = item[name];
+              } else {
+                rowLeft[name] = 0;
+              }
+            });
+            rowLeft.type = gtd.type;
+            rowLeft.group = key;
+            rowLeft.id = uniqid();
+            rowLeft.max = true;
+            rowLeft.weight = 999999;
+            rowLeft.side = 'Left';
+            rowLeft.power = this.getMaxForProps(groupData, 'Left', 'power');
+            rowLeft['best:power'] = this.getMaxForProps(
+              groupData,
+              'Left',
+              'best:power'
+            );
+            rowLeft.force = this.getMaxForProps(groupData, 'Left', 'force');
+            rowLeft['best:force'] = this.getMaxForProps(
+              groupData,
+              'Left',
+              'best:force'
+            );
+            rowLeft.fmax = this.getMaxForProps(groupData, 'Left', 'fmax');
+            rowLeft['displacement-eccentric'] = this.getMaxForProps(
+              groupData,
+              'Left',
+              'displacement-eccentric'
+            );
+            rowLeft['displacement-concentric'] = this.getMaxForProps(
+              groupData,
+              'Left',
+              'displacement-concentric'
+            );
+
+            data.push(rowLeft);
+
+            var rowRight = JSON.parse(JSON.stringify(rowLeft));
+            rowRight.id = uniqid();
+            rowRight.side = 'Right';
+            rowRight.power = this.getMaxForProps(groupData, 'Right', 'power');
+            rowRight['best:power'] = this.getMaxForProps(
+              groupData,
+              'Right',
+              'best:power'
+            );
+            rowRight.force = this.getMaxForProps(groupData, 'Right', 'force');
+            rowRight['best:force'] = this.getMaxForProps(
+              groupData,
+              'Right',
+              'best:force'
+            );
+            rowRight.fmax = this.getMaxForProps(groupData, 'Right', 'fmax');
+            rowRight['displacement-eccentric'] = this.getMaxForProps(
+              groupData,
+              'Right',
+              'displacement-eccentric'
+            );
+            rowRight['displacement-concentric'] = this.getMaxForProps(
+              groupData,
+              'Right',
+              'displacement-concentric'
+            );
+            rowRight['power:deviation'] =
+              (1 - rowLeft.power / rowRight.power) * 100;
+            rowRight['force:deviation'] =
+              (1 - rowLeft.force / rowRight.force) * 100;
+
+            data.push(rowRight);
+          }
+        });
+      });
+    };
 
     getDeviations = (groupedTypeData, data) => {
       groupedTypeData.forEach(gtd => {
@@ -1535,7 +2181,7 @@ function getHeaderStyle() {
   };
 }
 
-function getRowStyle() {
+function getRowStyle(state, rowInfo, column, instance) {
   return {
     style: {
       backgroundColor: 'white',
@@ -1564,14 +2210,14 @@ function getRowDataStyle(state, rowInfo, column, instance) {
     if (rowInfo.level === 1) {
       return {
         style: {
-          backgroundColor: '#F6FFFF',
+          backgroundColor: '#EEF8F9',
           // color: "#86230B",
-          borderBottom: 'solid 0.1em #F6FFFF',
-          // fontSize: "0.97em",
-          // textAlign: "start",
-          padding: '0px',
-          marginBottom: '2px',
-          height: '24px',
+          borderTop: 'solid 0.1em #C6E2E5',
+          alignContent: 'center',
+          verticalAlign: 'middle',
+          padding: '1px',
+          paddingTop: '5px',
+          height: '31px',
           fontWeight: '400'
         }
       };
@@ -1580,10 +2226,7 @@ function getRowDataStyle(state, rowInfo, column, instance) {
       return {
         style: {
           backgroundColor: 'white',
-          // color: "#003871",
-          borderBottom: 'solid 0.0em #EDF1F7',
-          // fontSize: "0.97em",
-          // textAlign: "start",
+          borderBottom: 'solid 0.0em #E0ECFA',
           padding: '0px',
           margin: '0px',
           height: '23px',
@@ -1596,7 +2239,7 @@ function getRowDataStyle(state, rowInfo, column, instance) {
       style: {
         backgroundColor: 'white',
         // color: "#003871",
-        borderBottom: 'solid 0px #F0F0F0',
+        borderBottom: 'solid 0.0em #EEF1F8',
         // fontSize: "0.97em",
         padding: '1px',
         margin: '0px',
@@ -1608,11 +2251,10 @@ function getRowDataStyle(state, rowInfo, column, instance) {
   return {
     style: {
       backgroundColor: 'white',
+      color: '#405399',
+      borderBottom: 'solid 0.0em #EEF1F8',
       alignContent: 'center',
       verticalAlign: 'middle',
-      color: '#405399',
-      borderBottom: 'solid 0px #F0F0F0',
-      // fontSize: "0.97em",
       padding: '1px',
       paddingTop: '10px',
       height: '40px',
@@ -1637,6 +2279,7 @@ function getDataForWeight(exercise, sessionType = 'test') {
             exercise: exercise.exercise,
             weight: weight.weight,
             side: s.side,
+            max: false,
             exerciseGroup: currentExercise['exercise-group'],
             exerciseClass: currentExercise['exercise-class'],
             exerciseSubClass: currentExercise['exercise-subclass'],
@@ -1652,41 +2295,13 @@ function getDataForWeight(exercise, sessionType = 'test') {
           }
           average.forEach(a => {
             item[a.name] = Number(a.value.toFixed(2));
-            if (a['deviation'] !== undefined) {
-              item[a.name + ':deviation'] = Number(
-                (a.deviation * 100).toFixed(2)
-              );
-            }
-            if (a['deviation/kg'] !== undefined) {
-              item[a.name + ':deviation/kg'] = Number(
-                (a.deviation * 100).toFixed(2)
-              );
-            }
-
-            if (a.unit === 's') {
-              item['unit:' + a.name] = (a.value * 1000).toFixed(2) + ' ms';
-            } else {
-              item['unit:' + a.name] = a.value.toFixed(2) + ' ' + a.unit;
-            }
-            if (a['unit:deviation'] !== undefined) {
-              item[a.name + ':unit:deviation'] =
-                (a.deviation * 100).toFixed(2) + '%';
-            }
+            item['unit:' + a.name] = a.unit; // if (a['unit:deviation'] !== undefined) {
           });
           best.forEach(a => {
             if (a.unit === 's') {
               item['best:' + a.name] = Number((a.value * 1000).toFixed(2));
             } else {
               item['best:' + a.name] = Number(a.value.toFixed(2));
-            }
-
-            if (a['deviation'] !== undefined) {
-              item['best:' + a.name + ':deviation'] =
-                (a.deviation * 100).toFixed(2) + '%';
-            }
-            if (a['deviation/kg'] !== undefined) {
-              item['best:' + a.name + ':deviation/kg'] =
-                (a.deviation * 100).toFixed(2) + '%';
             }
           });
           results.push(item);
