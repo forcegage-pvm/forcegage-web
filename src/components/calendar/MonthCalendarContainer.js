@@ -110,7 +110,6 @@ export default class MonthCalendarContainer extends Component {
 
   getPeriodStats = () => {
     const { selectedExercises, range } = this.state;
-    console.log('range', range);
     const filter = {
       fullDate: {
         filter: true,

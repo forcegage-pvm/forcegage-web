@@ -1,105 +1,147 @@
+import uniqid from 'uniqid';
+
 export class Exercises {
   constructor(sessions) {
     this.exercises = this.getExerciseData(sessions);
   }
 
-  getExerciseData(sessions) {
-    var result = [];
-
-    // * Get distinct exercises for all sessions
-    var exercises = [...new Set(sessions.map(s => s.exercise))];
-    exercises.forEach(e => {
-      // {e} is the current exercise
+  getTypeData(sessions, exercise) {
+    var allTypes = [];
+    // * Get distinct types for all sessions
+    sessions.forEach(session =>
+      session.sets.forEach(s => allTypes.push(s.type))
+    );
+    var distinctTypes = [...new Set(allTypes.map(type => type))];
+    var types = [];
+    distinctTypes.forEach(type => {
       // * filtered sessions based on the current exercise (e)
-      var es = sessions.filter(s => s.exercise === e);
-      // * Get exercise/test session grouping
-      var sessionTypes = [...new Set(es.map(s => s.sessionType))];
-      var types = [];
-      sessionTypes.map(t =>
-        types.push({
-          type: t,
-          weights: [],
-          sides: []
+      var ss = [];
+      sessions.forEach(s =>
+        s.sets.forEach(set => {
+          if (set.type === type) {
+            ss.push(s);
+          }
         })
       );
-      // * get the distinct list of @param weights for this exercise
-      var weights = [...new Set(es.map(s => Number(s.weight)))];
-      var exerciseData = {
-        exercise: e,
-        sessionTypes: types,
-        summary: {
-          weights: [],
-          sides: []
-        }
-      };
+      var dss = [...new Set(ss.map(session => session))];
+      var exerciseData = this.getExerciseDataSummary(dss, exercise);
+      types.push({
+        type: type,
+        summary: JSON.parse(JSON.stringify(exerciseData.summary)),
+        sessionTypes: JSON.parse(JSON.stringify(exerciseData.sessionTypes)),
+        id: uniqid()
+      });
+    });
+    return types;
+  }
 
-      // # iterates weights and get the summary information
-      weights.forEach(w => {
-        // {w} is the current weight
-        // * filtered sessions based on the current weight (w)
-        var fi = es.filter(e => e.weight === w);
-        // * for each weight, get the list of distinct sides
-        var summary = this.getWeightSummary(fi, w);
-        exerciseData.summary.weights.push(summary);
-      });
-      // get the distinct sides information across all {weights}
-      var distinctSides = this.getSidesSummary(es, exerciseData.summary.sides);
-      // we have Left/Right - add summary to exercise
-      if (distinctSides.length === 2) {
-        exerciseData.summary.average = this.getAvgForExercise(
-          exerciseData.summary.weights
-        );
-        exerciseData.summary.best = this.getBestForExercise(
-          exerciseData.summary.weights,
-          es
-        );
-        // we should then only have {Both}
-      } else {
-        var both = exerciseData.summary.sides.find(
-          side => side.side === 'Both'
-        );
-        if (both !== undefined) {
-          exerciseData.summary.average = both.average;
-          exerciseData.summary.best = both.best;
-        }
-      }
-      exerciseData.sessionTypes.forEach(t => {
-        // {e} is the current exercise
-        // * filtered sessions based on the current exercise (e)
-        var est = sessions.filter(
-          s => s.exercise === e && s.sessionType === t.type
-        );
-        // * get the distinct list of @param weights for this exercise
-        var typeWeights = [...new Set(est.map(s => Number(s.weight)))];
-        // # iterates weights and get the summary information
-        typeWeights.forEach(w => {
-          // {w} is the current weight
-          // * filtered sessions based on the current weight (w)
-          var fi = est.filter(e => e.weight === w);
-          // * for each weight, get the list of distinct sides
-          var summary = this.getWeightSummary(fi, w);
-          t.weights.push(summary);
-        });
-        // get the distinct sides information across all {weights}
-        var distinctSides = this.getSidesSummary(est, t.sides);
-        // we have Left/Right - add summary to exercise
-        if (distinctSides.length === 2) {
-          t.average = this.getAvgForExercise(t.weights);
-          t.best = this.getBestForExercise(t.weights, est);
-          // we should then only have {Both}
-        } else {
-          var both = t.sides.find(side => side.side === 'Both');
-          if (both !== undefined) {
-            t.average = both.average;
-            t.best = both.best;
-          }
-        }
-      });
+  getExerciseData(sessions) {
+    var result = [];
+    // * Get distinct exercises for all sessions
+    var exercises = [...new Set(sessions.map(s => s.exercise))];
+    exercises.forEach(exercise => {
+      // {e} is the current exercise
+      // * filtered sessions based on the current exercise (e)
+      var es = sessions.filter(s => s.exercise === exercise);
+      // * Get exercise/test session grouping
+      var exerciseData = this.getExerciseDataSummary(es, exercise);
+      exerciseData.types = this.getTypeData(es, exercise);
       result.push(exerciseData);
     });
     this.sortData(result);
     this.getDeviation(result);
+    result.forEach(r => {
+      this.getDeviation(r.types);
+    });
+    result.forEach(r =>
+      r.types.forEach(t => {
+        this.getDeviationTypes(t.sessionTypes);
+      })
+    );
     return result;
+  }
+
+  getExerciseDataSummary(es, e) {
+    var sessionTypes = [...new Set(es.map(s => s.sessionType))];
+    var types = [];
+    sessionTypes.map(t =>
+      types.push({
+        type: t,
+        weights: [],
+        sides: [],
+        id: uniqid()
+      })
+    );
+    // * get the distinct list of @param weights for this exercise
+    var weights = [...new Set(es.map(s => Number(s.weight)))];
+    var exerciseData = {
+      exercise: e,
+      sessionTypes: types,
+      summary: {
+        weights: [],
+        sides: [],
+        id: uniqid()
+      }
+    };
+    // # iterates weights and get the summary information
+    weights.forEach(w => {
+      // {w} is the current weight
+      // * filtered sessions based on the current weight (w)
+      var fi = es.filter(e => e.weight === w);
+      // * for each weight, get the list of distinct sides
+      var summary = this.getWeightSummary(fi, w);
+      exerciseData.summary.weights.push(summary);
+    });
+    // get the distinct sides information across all {weights}
+    var distinctSides = this.getSidesSummary(es, exerciseData.summary.sides);
+    // we have Left/Right - add summary to exercise
+    if (distinctSides.length === 2) {
+      exerciseData.summary.average = this.getAvgForExercise(
+        exerciseData.summary.weights
+      );
+      exerciseData.summary.best = this.getBestForExercise(
+        exerciseData.summary.weights,
+        es
+      );
+      // we should then only have {Both}
+    } else {
+      var both = exerciseData.summary.sides.find(side => side.side === 'Both');
+      if (both !== undefined) {
+        exerciseData.summary.average = both.average;
+        exerciseData.summary.best = both.best;
+      }
+    }
+    exerciseData.sessionTypes.forEach(t => {
+      // {e} is the current exercise
+      // * filtered sessions based on the current exercise (e)
+      var est = es.filter(s => s.sessionType === t.type);
+      // * get the distinct list of @param weights for this exercise
+      var typeWeights = [...new Set(est.map(s => Number(s.weight)))];
+      // # iterates weights and get the summary information
+      typeWeights.forEach(w => {
+        // {w} is the current weight
+        // * filtered sessions based on the current weight (w)
+        var fi = est.filter(e => e.weight === w);
+        // * for each weight, get the list of distinct sides
+        var summary = this.getWeightSummary(fi, w);
+        t.weights.push(summary);
+      });
+      // get the distinct sides information across all {weights}
+      var distinctSides = this.getSidesSummary(est, t.sides);
+      // we have Left/Right - add summary to exercise
+      if (distinctSides.length === 2) {
+        t.average = this.getAvgForExercise(t.weights);
+        t.best = this.getBestForExercise(t.weights, est);
+        // we should then only have {Both}
+      } else {
+        var both = t.sides.find(side => side.side === 'Both');
+        if (both !== undefined) {
+          t.average = both.average;
+          t.best = both.best;
+        }
+      }
+    });
+    return exerciseData;
   }
 
   getWeightSummary(fi, w) {
@@ -118,7 +160,8 @@ export class Exercises {
         // get the average summary
         average: this.getAvgForSide(fi, side),
         // get the best summary
-        best: this.getBestForSide(fi, side)
+        best: this.getBestForSide(fi, side),
+        id: uniqid()
       });
     });
     // * get the summary data for the current {weight}
@@ -165,6 +208,31 @@ export class Exercises {
         this.getSideDeviation(weight.sides);
       }
       this.getSideDeviation(e.summary.sides);
+    });
+  }
+
+  getDeviationTypes(data) {
+    data.forEach(e => {
+      for (var i = 0; i < e.weights.length - 1; i++) {
+        var weight = e.weights[i];
+        var nextWeight = e.weights[i + 1];
+        weight.average.forEach(s => {
+          var nextStat = nextWeight.average.find(a => a.name === s.name);
+          var def = 1 - s.value / nextStat.value;
+          nextStat['deviation'] = def;
+          nextStat['deviation/kg'] =
+            (nextStat.value - s.value) / nextWeight.weight;
+        });
+        weight.best.forEach(s => {
+          var nextStat = nextWeight.best.find(a => a.name === s.name);
+          var def = 1 - s.value / nextStat.value;
+          nextStat['deviation'] = def;
+          nextStat['deviation/kg'] =
+            (nextStat.value - s.value) / nextWeight.weight;
+        });
+        this.getSideDeviation(weight.sides);
+      }
+      this.getSideDeviation(e.sides);
     });
   }
 
@@ -239,7 +307,8 @@ export class Exercises {
         value: value,
         name: stat.name,
         unit: stat.unit,
-        best: stat.best
+        best: stat.best,
+        id: uniqid()
       });
     });
     this.getBestMetaData(summaryStats, sessions);
@@ -262,7 +331,8 @@ export class Exercises {
               setId: set.setId,
               statId: max.statId,
               timestamp: set.timestamp,
-              exercise: session.exercise
+              exercise: session.exercise,
+              id: uniqid()
             };
           }
           s.value = s.value;
@@ -318,7 +388,8 @@ export class Exercises {
           value: value,
           name: stat.name,
           unit: stat.unit,
-          best: stat.best
+          best: stat.best,
+          id: uniqid()
         });
       });
       this.getBestMetaData(summaryStats, sessions);
@@ -381,7 +452,8 @@ export class Exercises {
         value: value,
         name: stat.name,
         unit: stat.unit,
-        best: stat.best
+        best: stat.best,
+        id: uniqid()
       });
     });
     this.getBestMetaData(stats, sessions);
@@ -436,7 +508,8 @@ export class Exercises {
         value: value,
         name: stat.name,
         unit: stat.unit,
-        best: stat.best
+        best: stat.best,
+        id: uniqid()
       });
     });
     this.getBestMetaData(stats, sessions);
@@ -453,7 +526,8 @@ export class Exercises {
       exerciseSides.push({
         side: JSON.parse(JSON.stringify(side)),
         average: this.getSideSummary(filter, side, 'average', filter),
-        best: this.getSideSummary(filter, side, 'best', filter)
+        best: this.getSideSummary(filter, side, 'best', filter),
+        id: uniqid()
       });
     });
     return distinctSides;

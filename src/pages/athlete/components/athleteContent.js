@@ -53,7 +53,7 @@ const AthleteContent = observer(
                   <WeightSummary weights={weights}></WeightSummary>
                 </div>
               </TabPane>
-              {this.athlete.exerciseDays.map((e, index) => (
+              {this.athlete.period.exerciseDays.map((e, index) => (
                 <TabPane
                   tab={
                     new Date(e.date).getDate() +
@@ -63,7 +63,10 @@ const AthleteContent = observer(
                   key={index}
                 >
                   <div>
-                    <ExerciseForDay day={e.date}></ExerciseForDay>
+                    <ExerciseForDay
+                      day={e.date}
+                      weights={weights}
+                    ></ExerciseForDay>
                   </div>
                 </TabPane>
               ))}

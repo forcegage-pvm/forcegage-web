@@ -34,6 +34,16 @@ export class DataProvider {
     this._db = this._firebaseApp.firestore();
   }
 
+  async loadExercises() {
+    var snapshots = await this._db.collection('exercises').get();
+    var exercises = [];
+    snapshots.docs.forEach(doc => {
+      var exercise = doc.data();
+      exercises.push(exercise);
+    });
+    return exercises;
+  }
+
   async loadAthlete(atheledId, athlete) {
     var snapshot = await this._db
       .collection('athletes')
@@ -48,7 +58,8 @@ export class DataProvider {
       .collection('sessions')
       .get();
     snapshots.docs.forEach(doc => {
-      athlete.addSessionFromJson(doc.data());
+      var data = doc.data();
+      athlete.addSessionFromJson(data);
     });
     if (athlete['sessions'] !== undefined) {
       this._expanded = Expander(athlete);

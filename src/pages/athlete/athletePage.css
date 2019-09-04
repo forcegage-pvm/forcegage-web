@@ -36,3 +36,306 @@
   width: 5px;
   font-weight: 400;
 }
+
+.tag-weight {
+  background-color: rgb(0, 126, 29);
+  color: rgb(246, 255, 245);
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.97em;
+  font-weight: 400;
+  padding-left: 9px;
+  padding-right: 9px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0px;
+}
+
+.tag-max-value {
+  background-color: rgb(209, 15, 15);
+  border-radius: 5px;
+  font-size: 1.9ex;
+  font-weight: 600;
+  height: 21px;
+  padding-top: 0px;
+  text-align: start;
+  padding-bottom: 0px;
+  margin-bottom: 30px;
+  border-color: rgb(187, 51, 51);
+  color: rgb(250, 239, 239);
+}
+
+.tag-max-group-value {
+  /* background-color: #EAFAF1; */
+  border-radius: 5px;
+  font-size: 0.96em;
+  font-weight: 400;
+  padding-left: 1px;
+  padding-right: 15px;
+  padding-top: 1px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  color: rgb(255, 0, 0);
+}
+
+.tag-side-left {
+  background-color: #eafaf1;
+  border-radius: 5px;
+  font-size: 0.92em;
+  font-weight: 400;
+  padding-left: 11px;
+  padding-right: 15px;
+  padding-top: 1px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  color: rgb(0, 35, 99);
+}
+
+.tag-side-right {
+  background-color: #d6eaf8;
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.92em;
+  font-weight: 400;
+  padding-left: 15px;
+  padding-right: 3px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  /* border-color: rgb(0, 94, 20); */
+  color: rgb(0, 35, 99);
+}
+
+.tag-side-both {
+  background-color: #fef5e7;
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.92em;
+  font-weight: 400;
+  padding-left: 1px;
+  padding-right: 1px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  /* border-color: rgb(0, 94, 20); */
+  color: black;
+}
+
+.cell-value {
+  font-size: 0.97em;
+  font-weight: 400;
+  padding-top: 0px;
+  text-align: center;
+  padding-bottom: 0px;
+  margin-right: 0px;
+  color: rgb(126, 126, 126);
+}
+
+.deviation-value {
+  cursor: pointer;
+  align-content: center;
+  font-size: 0.9em;
+  border-radius: 5px;
+  border-width: 0.05em;
+  /* border-style:solid; */
+  /* border-color: rgb(142, 178, 255); */
+  font-weight: 400;
+  padding-top: 0px;
+  padding-bottom: 6px;
+  margin-top: 2px;
+  width: 35px;
+  height: 18.5px;
+  text-align: center;
+  padding-bottom: 0px;
+  /* background-color: #D6EAF8; */
+  color: rgb(0, 112, 19);
+}
+
+.deviation-value-left {
+  cursor: pointer;
+  align-content: center;
+  font-size: 0.9em;
+  border-radius: 5px;
+  border-width: 0.05em;
+  border-style: solid;
+  border-color: rgb(110, 202, 113);
+  font-weight: 400;
+  padding-top: 10px;
+  padding-bottom: 6px;
+  /* margin-top: 5px; */
+  width: 36px;
+  height: 28px;
+  text-align: center;
+  padding-bottom: 0px;
+  background-color: rgb(214, 245, 217);
+  /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
+  color: rgb(46, 43, 43);
+}
+
+.deviation-value-right {
+  cursor: pointer;
+  font-size: 0.9em;
+  border-radius: 5px;
+  border-width: 0.05em;
+  border-style: solid;
+  border-color: rgb(110, 202, 113);
+  font-weight: 400;
+  margin-top: -13px;
+  width: 36px;
+  text-align: center;
+  padding-bottom: 14px;
+  vertical-align: -10em;
+  background-color: rgb(214, 245, 217);
+  /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
+  color: rgb(46, 43, 43);
+}
+
+.deviation-value-side {
+  cursor: pointer;
+  font-size: 0.9em;
+  border-radius: 5px;
+  border-width: 0.05em;
+  border-style: solid;
+  border-color: rgb(110, 202, 113);
+  font-weight: 400;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  width: 36px;
+  text-align: center;
+  padding-bottom: 0px;
+  vertical-align: -10em;
+  /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
+  background-color: rgb(214, 245, 217);
+  color: rgb(46, 43, 43);
+}
+
+.deviation-value-weight {
+  cursor: pointer;
+  font-size: 0.83em;
+  border-radius: 5px;
+  border-width: 0.05em;
+  border-style: solid;
+  background-color: rgb(0, 126, 29);
+  color: rgb(246, 255, 245);
+  font-weight: 400;
+  padding-top: 0px;
+  margin-top: 1px;
+  width: 35px;
+  height: 18.5px;
+  text-align: center;
+  padding-bottom: 0px;
+}
+
+.expand {
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.expand-icon {
+  grid-column: 1;
+  font-size: 1.25em;
+  font-weight: 400;
+  margin-top: -3px;
+  margin-left: 5px;
+  margin-right: 5px;
+  text-align: start;
+  vertical-align: top;
+  color: rgb(0, 7, 109);
+}
+
+.expand-value {
+  grid-column: 2;
+  font-size: 0.97em;
+  font-weight: 400;
+  padding-top: 0px;
+  size: auto;
+  width: min-content;
+  border-radius: 4px;
+  text-align: start;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: rgb(255, 255, 255);
+  background-color: rgb(0, 25, 78);
+}
+
+.expand-value-group {
+  grid-column: 2;
+  font-size: 0.97em;
+  font-weight: 400;
+  padding-top: 0px;
+  size: auto;
+  width: min-content;
+  border-radius: 4px;
+  text-align: start;
+  padding-left: 5px;
+  padding-right: 5px;
+  /* color: rgb(255, 255, 255); */
+  border-color: rgb(0, 164, 214);
+  border-width: 0.1em;
+  border-style: solid;
+  background-color: rgb(238, 251, 255);
+}
+
+.tooltip-best {
+  color: rgb(230, 219, 219);
+  font-weight: 300;
+  font-size: 0.92em;
+}
+
+.best-power-both {
+  background-color: rgb(207, 0, 0);
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.92em;
+  font-weight: 500;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  color: rgb(255, 255, 255);
+}
+
+.best-power-left {
+  background-color: rgb(207, 48, 0);
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.92em;
+  font-weight: 500;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  color: rgb(255, 255, 255);
+}
+
+.best-power-right {
+  background-color: rgb(255, 67, 67);
+  border-radius: 5px;
+  border-width: 0.05em;
+  font-size: 0.92em;
+  font-weight: 500;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: center;
+  margin-top: 0px;
+  color: rgb(255, 255, 255);
+}
+
+.filter-group {
+  background-color: rgb(0, 164, 214);
+  color: red;
+}

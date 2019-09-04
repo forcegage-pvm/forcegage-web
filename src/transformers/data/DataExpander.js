@@ -15,6 +15,7 @@ export default function Expander(data) {
   var repId = -1;
   var statId = -1;
   dataSessions.forEach((s, index) => {
+    // console.log("session", s)
     sessionId++;
     var date = new Date(s.timestamp);
     var session = {
@@ -48,11 +49,20 @@ export default function Expander(data) {
     var dataSets = s.sets;
     dataSets.forEach((st, index) => {
       setId++;
+      var type = 'Throw-off';
+      if (st['constant-contact']) {
+        type = 'Constant Contact';
+      }
+      if (st['isometric']) {
+        type = 'Isometric';
+      }
+
       var set = {
         setId: setId,
         sessionId: sessionId,
         side: st.side,
-        timestamp: s.timestamp
+        timestamp: s.timestamp,
+        type: type
       };
       var dataReps = st.reps;
       dataReps.forEach(r => {

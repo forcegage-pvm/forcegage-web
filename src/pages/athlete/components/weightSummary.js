@@ -50,7 +50,6 @@ const WeightSummary = observer(
 
     render() {
       const { method, data } = this.state;
-      console.log('data', data);
       return (
         <div>
           <Radio.Group

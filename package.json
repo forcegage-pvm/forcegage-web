@@ -40,12 +40,14 @@
     "react-list-select": "^0.4.1",
     "react-router-dom": "^5.0.1",
     "react-scripts": "3.1.1",
+    "react-table": "^6.10.0",
     "react-tooltip": "^3.10.0",
     "reactstrap": "^8.0.1",
     "recharts": "^1.7.1",
     "save-file": "^2.3.1",
     "semantic-ui-react": "^0.88.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "uniqid": "^5.0.3"
   },
   "scripts": {
     "start": "react-scripts start",

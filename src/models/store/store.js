@@ -28,6 +28,7 @@ export function GetStore() {
 
 class Store {
   constructor(brand) {
+    // this.exercises = []
     this.athlete = new Athlete();
     this.state = new State();
     this.initStore();
@@ -35,7 +36,14 @@ class Store {
 
   async initStore() {
     this._provider = new DataProvider();
+    this.loadExercises();
     this.loadAthlete();
+  }
+
+  async loadExercises() {
+    this._provider.loadExercises().then(exercises => {
+      this.exercises = exercises;
+    });
   }
 
   async loadAthlete() {
@@ -58,6 +66,7 @@ class Store {
 
 decorate(Store, {
   athlete: observable,
+  // exercises: observable,
   state: observable,
   loadAthlete: action
 });
