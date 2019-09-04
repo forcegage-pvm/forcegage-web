@@ -13,7 +13,7 @@ import '../athletePage.css';
 const sortOrder = ['Isometric', 'Throw-off', 'Constant Contact'];
 
 const maxRowStyle = {
-  backgroundColor: '#FFFFE8',
+  backgroundColor: '#FFF4DD',
   // backgroundColor: '#C83434',
   borderTop: 'solid 0.1em #ECD6A4',
   // borderTop: 'solid 0.1em #3D0000',
@@ -1088,7 +1088,7 @@ const ExerciseForDay = observer(
                     filterable: false,
                     accessor: 'power:deviation',
                     show: !hidden.includes('deviations'),
-                    width: 45,
+                    width: 42,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
                     getProps: (state, rowInfo, column) => {
                       if (
@@ -1138,7 +1138,7 @@ const ExerciseForDay = observer(
                     filterable: false,
                     accessor: 'power:deviation:weight',
                     show: !hidden.includes('deviations'),
-                    width: 45,
+                    width: 42,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
                     getProps: (state, rowInfo, column) => {
                       if (
@@ -1464,7 +1464,7 @@ const ExerciseForDay = observer(
                     filterable: false,
                     accessor: 'force:deviation',
                     show: !hidden.includes('deviations'),
-                    width: 45,
+                    width: 42,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
                     getProps: (state, rowInfo, column) => {
                       if (
@@ -1511,7 +1511,7 @@ const ExerciseForDay = observer(
                     filterable: false,
                     accessor: 'power:deviation:weight',
                     show: !hidden.includes('deviations'),
-                    width: 45,
+                    width: 42,
                     aggregate: vals => Number(_.mean(vals).toFixed(2)),
                     getProps: (state, rowInfo, column) => {
                       if (

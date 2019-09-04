@@ -164,7 +164,7 @@
   border-radius: 5px;
   border-width: 0.05em;
   border-style: solid;
-  border-color: rgb(110, 202, 113);
+  border-color: rgb(177, 226, 179);
   font-weight: 400;
   padding-top: 12px;
   padding-bottom: 6px;
@@ -173,7 +173,7 @@
   height: 29px;
   text-align: center;
   padding-bottom: 0px;
-  background-color: rgb(214, 245, 217);
+  background-color: rgb(231, 252, 233);
   /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
   color: rgb(46, 43, 43);
 }
@@ -184,14 +184,14 @@
   border-radius: 5px;
   border-width: 0.05em;
   border-style: solid;
-  border-color: rgb(110, 202, 113);
+  border-color: rgb(177, 226, 179);
   font-weight: 400;
   margin-top: -10px;
   width: 36px;
   text-align: center;
   padding-bottom: 13px;
   vertical-align: -10em;
-  background-color: rgb(214, 245, 217);
+  background-color: rgb(231, 252, 233);
   /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
   color: rgb(46, 43, 43);
 }
@@ -202,7 +202,7 @@
   border-radius: 5px;
   border-width: 0.05em;
   border-style: solid;
-  border-color: rgb(110, 202, 113);
+  border-color: rgba(215, 221, 163, 0.644);
   font-weight: 400;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -211,8 +211,7 @@
   text-align: center;
   padding-top: 1.5px;
   vertical-align: -10em;
-  /* background-image: linear-gradient(#EAFAF1, #D6EAF8); */
-  background-color: rgb(214, 245, 217);
+  background-color: rgb(252, 252, 231);
   color: rgb(46, 43, 43);
 }
 
