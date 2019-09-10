@@ -1,23 +1,22 @@
 import { Day } from './day';
 import { Exercises } from './exercises';
 import { save } from 'save-file';
-import { observable, action, decorate, computed } from 'mobx';
+import { observable, action, decorate, computed, autorun } from 'mobx';
 
 const typesForPBs = ['force', 'fmax', 'power'];
 const bestSessionIndicator = 'force';
 
 export class Athlete {
   constructor() {
-    this.days = [];
-    this.sessions = [];
-    this.exercises = [];
+    this.days = observable([]);
+    this.sessions = observable([]);
+    this.exercises = observable([]);
+    this.exerciseDays = observable([]);
     this._sessionId = 0;
     this._setId = 0;
     this._repId = 0;
     this._statId = 0;
     this._statsProvider = undefined;
-    this.days = [];
-    this.exerciseDays = [];
     this.loaded = false;
     this.period = {};
     this.firstName = '';
@@ -34,6 +33,10 @@ export class Athlete {
     this.lastName = json.lastName;
     this.bodyWeight = json.bodyWeight;
     this.bodyWeights = json.bodyWeights;
+    this.days = observable([]);
+    this.sessions = observable([]);
+    this.exercises = observable([]);
+    this.exerciseDays = observable([]);
   }
 
   addSessionFromJson(json) {
@@ -47,7 +50,7 @@ export class Athlete {
       side: json.side,
       timestamp: json.timestamp,
       weight: json.weight,
-      sets: json.sets
+      sets: JSON.parse(JSON.stringify(json.sets))
     };
     session.sets.forEach(set => {
       set['setId'] = this._setId;
@@ -77,6 +80,8 @@ export class Athlete {
     this.period.exerciseDays = this.days;
     this.period.summary = summary;
     this.loaded = true;
+    summary.exercises.forEach(e => this.exercises.push(e.exercise));
+    console.log('exercises', this.exercises);
   }
 
   async normalizeData(data) {

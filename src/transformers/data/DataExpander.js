@@ -15,7 +15,6 @@ export default function Expander(data) {
   var repId = -1;
   var statId = -1;
   dataSessions.forEach((s, index) => {
-    // console.log("session", s)
     sessionId++;
     var date = new Date(s.timestamp);
     var session = {

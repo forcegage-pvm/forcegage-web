@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import { Input, Menu } from 'semantic-ui-react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import Athletes from '../athletes/Athletes';
-import MonthCalendar from '../calendar/MonthCalendar';
-import MonthCalendarContainer from '../calendar/MonthCalendarContainer';
 import AthletePage from '../../pages/athlete/athletePage';
+import AthleteList from '../../pages/athlete/components/athleteList';
 
 import Home from '../app/Home';
 import forceicon from '../../assets/forceicon.png';
@@ -36,7 +35,7 @@ export default class ForceMenu extends Component {
                     active={activeItem === 'athletes'}
                     onClick={this.handleItemClick}
                   >
-                    <Link to="/athlete">Athlete</Link>
+                    <Link to="/athletes">Athlete</Link>
                   </Menu.Item>
                   <Menu.Item
                     name="analysis"
@@ -64,7 +63,7 @@ export default class ForceMenu extends Component {
               </Menu>
               <main>
                 <Route path="/home" component={props => <Home />} />
-                <Route path="/athlete" component={props => <Athletes />} />
+                <Route path="/athletes" component={props => <AthleteList />} />
                 <Route
                   path="/analysis"
                   // component={props => <MonthCalendarContainer />}

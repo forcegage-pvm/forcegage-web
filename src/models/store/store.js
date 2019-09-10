@@ -28,45 +28,66 @@ export function GetStore() {
 
 class Store {
   constructor(brand) {
-    // this.exercises = []
-    this.athlete = new Athlete();
     this.state = new State();
+    this.exercises = observable([]);
+    this.athletes = observable([]);
+    this.athlete = new Athlete();
     this.initStore();
   }
 
   async initStore() {
     this._provider = new DataProvider();
+    this.loadAthletes();
     this.loadExercises();
-    this.loadAthlete();
+    this.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
   }
 
   async loadExercises() {
     this._provider.loadExercises().then(exercises => {
-      this.exercises = exercises;
+      exercises.forEach(exercise => {
+        this.exercises.push(exercise);
+      });
     });
   }
 
-  async loadAthlete() {
-    this._provider
-      .loadAthlete('Glwok6yOD5CgxJJ8x3aq', this.athlete)
-      .then(() => {
-        console.log('athlete loaded');
-        this.athlete.loadSessionData().then(athlete => {
-          console.log('sessions loaded');
-          console.log('Athlete:', athlete);
-          this.athlete
-            .getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31))
-            .then(() => {
-              console.log('result', this.athlete.period);
-            });
-        });
+  async loadAthletes() {
+    this._provider.loadAthletes().then(athletes => {
+      athletes.sort((x, y) => (x.lastName > y.lastName ? 1 : -1));
+      athletes.forEach(athlete => {
+        this.athletes.push(athlete);
       });
+
+      console.log('athletes', this.athletes);
+      this.state.athletesLoading = false;
+    });
+  }
+
+  async loadAthlete(id) {
+    this.state.menuSelected = false;
+    this.state.athleteLoading = true;
+    this.state.menuParent = 'overview';
+    this.state.menuSelectedKeys = ['overview'];
+    this._provider.loadAthlete(id, this.athlete).then(() => {
+      console.log('athlete loaded');
+      this.athlete.loadSessionData().then(athlete => {
+        console.log('sessions loaded');
+        console.log('Athlete:', athlete);
+        this.athlete
+          .getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31))
+          .then(() => {
+            console.log('result', this.athlete.period);
+            this.state.athleteLoading = false;
+          });
+      });
+    });
   }
 }
 
 decorate(Store, {
   athlete: observable,
-  // exercises: observable,
+  athletes: observable,
+  exercises: observable,
   state: observable,
-  loadAthlete: action
+  loadAthlete: action,
+  loadAthletes: action
 });

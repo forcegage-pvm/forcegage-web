@@ -1,6 +1,6 @@
 .main {
   display: grid;
-  grid-template-columns: 220px max-content;
+  grid-template-columns: 260px max-content;
 }
 
 .main-menu {
@@ -13,7 +13,7 @@
 
 .main-content {
   grid-column: 2;
-  width: calc(100vw - 240px);
+  width: calc(100vw - 280px);
   margin-left: 10px;
   margin-right: 10px;
 }
@@ -232,6 +232,41 @@
   padding-bottom: 0px;
 }
 
+.content-date-tab {
+  display: grid;
+  grid-template-rows: auto auto;
+  grid-template-columns: auto auto;
+}
+
+.content-date-year {
+  grid-row: 1;
+  grid-column: 1 / span 2;
+  font-weight: 500;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: 4px;
+  border-width: 0.05em;
+  border-style: solid;
+  border-color: #7695b898;
+  color: rgb(0, 19, 59);
+  text-align: center;
+  background-color: rgba(230, 249, 255, 0.411);
+}
+
+.content-date-month {
+  grid-row: 2;
+  text-align: center;
+  margin-right: 1px;
+  font-weight: 500;
+  color: rgb(109, 39, 39);
+}
+
+.content-date-day {
+  grid-row: 2;
+  text-align: center;
+  font-weight: 400;
+}
+
 .expand {
   display: grid;
   grid-template-columns: 20px auto;
@@ -342,4 +377,81 @@
 .filter-group {
   background-color: rgb(0, 164, 214);
   color: red;
+}
+
+.data-table {
+  height: calc(77vh);
+  width: 100%;
+}
+
+.header-avg {
+  background-color: #002550;
+  color: rgb(238, 242, 255);
+  font-weight: 400;
+  overflow: 'hidden';
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.96em;
+  align-content: center;
+}
+
+.header-max {
+  background-color: #ca4b24;
+  color: rgb(255, 255, 255);
+  font-weight: 500;
+  overflow: 'hidden';
+  font-size: 0.92em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container {
+  display: grid;
+  margin-left: -20px;
+  width: 200px;
+  height: 200px;
+  margin-top: -5px;
+  background-color: #205700;
+  grid-template-columns: max-content 16px;
+}
+
+.container-versus {
+  grid-column: 2;
+  font-size: 0.76em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.808);
+  height: min-content;
+  margin-top: 7.4px;
+  margin-right: 1px;
+  padding: 0px;
+  background-color: #205700;
+  vertical-align: center;
+}
+
+.container-content {
+  grid-column: 1;
+  background-color: #205700;
+  display: grid;
+  padding-left: 4px;
+  text-align: start;
+  grid-template-rows: min-content min-content;
+}
+
+.container-top {
+  grid-row: 1;
+  font-size: 0.79em;
+  margin-top: 1.3px;
+  text-align: center;
+  color: rgb(255, 255, 255);
+  background-color: #205700;
+  font-weight: 400;
+}
+
+.container-bottom {
+  grid-row: 2;
+  font-size: 0.79em;
+  margin-top: -2px;
+  color: rgb(255, 197, 189);
+  background-color: #205700;
+  font-weight: 400;
 }

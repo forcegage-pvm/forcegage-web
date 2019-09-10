@@ -1,6 +1,7 @@
 import firebase from 'firebase';
 import Expander from '../../transformers/data/DataExpander';
 import StatsProvider from '../../providers/data/StatsProvider';
+import { Athlete } from '../../models/athlete/athlete';
 
 var Firebase = (function() {
   var instance;
@@ -44,17 +45,30 @@ export class DataProvider {
     return exercises;
   }
 
+  async loadAthletes() {
+    var snapshots = await this._db.collection('athletes').get();
+    var athletes = [];
+    snapshots.docs.forEach(doc => {
+      var athlete = new Athlete();
+      var data = doc.data();
+      data.id = doc['id'];
+      athlete.fromJson(data);
+      athletes.push(athlete);
+    });
+    return athletes;
+  }
+
   async loadAthlete(atheledId, athlete) {
     var snapshot = await this._db
       .collection('athletes')
-      .doc('Glwok6yOD5CgxJJ8x3aq')
+      .doc(atheledId)
       .get();
     var data = snapshot.data();
     data.id = snapshot['id'];
     athlete.fromJson(data);
     var snapshots = await this._db
       .collection('athletes')
-      .doc('Glwok6yOD5CgxJJ8x3aq')
+      .doc(atheledId)
       .collection('sessions')
       .get();
     snapshots.docs.forEach(doc => {
