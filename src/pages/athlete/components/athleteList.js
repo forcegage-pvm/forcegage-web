@@ -2,14 +2,14 @@ import React, { Component } from 'react';
 import '../athletePage.css';
 import { observer, Observer } from 'mobx-react';
 import { GetStore } from '../../../models/store/store';
-import { Table, Input } from 'antd';
+import { Table, Input, Button, Icon } from 'antd';
 import { Link } from 'react-router-dom';
 
 const { Search } = Input;
 
 function selectAthlete(athlete) {
-  console.log('athlete', athlete);
   GetStore().loadAthlete(athlete.id);
+  GetStore().state.activeMenuItem = 'analysis';
 }
 
 const AthleteColumns = [
@@ -17,7 +17,6 @@ const AthleteColumns = [
     title: 'Name',
     dataIndex: 'fullName',
     key: 'name',
-    // render: (text, record, index) => <a href="javascript:;" onClick={() => selectAthlete(record)}>{text}</a>,
     render: (text, record, index) => (
       <Link to={`../analysis`} onClick={() => selectAthlete(record)}>
         {text}
@@ -36,15 +35,26 @@ const AthleteColumns = [
     dataIndex: 'bodyWeight',
     key: 'bodyWeight',
     sorter: (a, b) => a.bodyWeight - b.bodyWeight
+  },
+  {
+    title: 'Select',
+    key: 'select',
+    width: 45,
+    height: 20,
+    render: (text, record, index) => {
+      return (
+        <Link to={`../analysis`} onClick={() => selectAthlete(record)}>
+          <Button size="small" type="primary">
+            <Icon
+              style={{ marginTop: '-5px', marginBottom: '5px' }}
+              type="user"
+            ></Icon>
+            Select
+          </Button>
+        </Link>
+      );
+    }
   }
-  // {
-  //     title: 'Select',
-  //     key: 'select',
-  //     width: 45,
-  //     render: (text, record) => (
-  //         <Button type="primary" onClick={() => selectAthlete(record)}>Select</Button>
-  //     )
-  // },
 ];
 
 const AthleteList = observer(
@@ -93,6 +103,8 @@ const AthleteList = observer(
       })
     };
 
+    onRowSelect = (record, selected, selectedRows, nativeEvent) => {};
+
     render() {
       const { search } = this.state;
       if (search !== '') {
@@ -116,7 +128,7 @@ const AthleteList = observer(
           />
           <Table
             style={{ width: 'calc(45vw)', height: 'calc(80vh)', margin: '5px' }}
-            rowSelection={this.rowSelectionAthlete}
+            // rowSelection={this.rowSelectionAthlete}
             columns={AthleteColumns}
             dataSource={filtered}
             bordered={false}

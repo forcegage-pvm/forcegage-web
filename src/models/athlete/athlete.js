@@ -1,7 +1,9 @@
 import { Day } from './day';
 import { Exercises } from './exercises';
-import { save } from 'save-file';
+import { Session } from './sessions';
+import _ from 'lodash';
 import { observable, action, decorate, computed, autorun } from 'mobx';
+import { GetStore } from '../store/store';
 
 const typesForPBs = ['force', 'fmax', 'power'];
 const bestSessionIndicator = 'force';
@@ -21,11 +23,25 @@ export class Athlete {
     this.period = {};
     this.firstName = '';
     this.lastName = '';
+    this.tests = observable([]);
   }
 
   get fullName() {
     return this.firstName + ' ' + this.lastName;
   }
+
+  clear = () => {
+    this.id = null;
+    this.firstName = '';
+    this.lastName = '';
+    this.bodyWeight = null;
+    this.bodyWeights = null;
+    this.days = observable([]);
+    this.sessions = observable([]);
+    this.exercises = observable([]);
+    this.exerciseDays = observable([]);
+    this.tests = observable([]);
+  };
 
   fromJson(json) {
     this.id = json.id;
@@ -37,6 +53,9 @@ export class Athlete {
     this.sessions = observable([]);
     this.exercises = observable([]);
     this.exerciseDays = observable([]);
+    if (json.tests !== undefined) {
+      this.tests = json.tests;
+    }
   }
 
   addSessionFromJson(json) {
@@ -81,45 +100,7 @@ export class Athlete {
     this.period.summary = summary;
     this.loaded = true;
     summary.exercises.forEach(e => this.exercises.push(e.exercise));
-    console.log('exercises', this.exercises);
-  }
-
-  async normalizeData(data) {
-    var result = [];
-    var header = 'from, to, exercise, weight, side, type, name, value';
-    result.push(header);
-    data.summary.exercises.forEach(ex => {
-      ex.weights.forEach(w => {
-        w.sides.forEach(s => {
-          s.average.forEach(a => {
-            var record = `${data.period.from
-              .toISOString()
-              .slice(0, 10)}, ${data.period.to.toISOString().slice(0, 10)}, ${
-              ex.exercise
-            }, ${w.weight}, ${s.side}, average, ${a.name}, ${a.value}`;
-            result.push(record);
-          });
-          s.best.forEach(a => {
-            var record = `${data.period.from
-              .toISOString()
-              .slice(0, 10)}, ${data.period.to.toISOString().slice(0, 10)}, ${
-              ex.exercise
-            }, ${w.weight}, ${s.side}, best, ${a.name}, ${a.value}`;
-            result.push(record);
-          });
-        });
-      });
-    });
-    var output = '';
-    result.forEach(r => {
-      if (output === '') {
-        output = r + +'\r\n';
-      } else {
-        output = output + r + '\r\n';
-      }
-    });
-
-    await save(output, 'data.json');
+    this.getTestData();
   }
 
   async loadSessionData() {
@@ -131,6 +112,39 @@ export class Athlete {
     });
     await promise;
     return this;
+  }
+
+  async getTestData() {
+    var sessions = [];
+    var exercises = GetStore().exercises;
+    this.days.forEach(day =>
+      day.sessions.forEach(session => sessions.push(session))
+    );
+    sessions = _.filter(sessions, { sessionType: 'test' });
+    var groupedsessions = _.groupBy(sessions, 'testSession');
+    var tests = [];
+    Object.keys(groupedsessions).forEach(key => {
+      var testSessions = groupedsessions[key];
+      var summary = new Exercises(testSessions);
+      tests.push({
+        test: key.substr(4, 10),
+        summary: summary
+      });
+    });
+    tests.forEach(test => {
+      var ex = exercises.find(
+        exercise => exercise.exercise === test.summary.exercises[0].exercise
+      );
+      var fullTest = false;
+      test.summary.exercises.forEach(exercise => {
+        fullTest = fullTest || exercise.types.length == 3;
+      });
+      test.complete = fullTest;
+      test.class = ex['exercise-class'];
+      test.group = ex['group'];
+    });
+    tests.sort((a, b) => (new Date(a.test) > new Date(b.test) ? 1 : -1));
+    this.tests = tests;
   }
 
   async getSessionData() {

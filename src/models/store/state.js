@@ -8,6 +8,8 @@ export class State {
   menuChild = '';
   athletesLoading = true;
   athleteLoading = true;
+  loggedIn = false;
+  activeMenuItem = 'login';
 }
 
 decorate(State, {
@@ -16,5 +18,7 @@ decorate(State, {
   menuSelectedKeys: observable,
   menuChild: observable,
   athletesLoading: observable,
-  athleteLoading: observable
+  athleteLoading: observable,
+  activeMenuItem: observable,
+  loggedIn: observable
 });

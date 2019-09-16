@@ -5,9 +5,15 @@
 }
 
 .Menu {
-  background-color: red;
-  height: 100%;
-  padding: 15px;
+  height: 60px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding-left: 15px;
+  text-align: center;
+  vertical-align: center;
+  background-color: #f6fbff;
 }
 
 .table-grid-row {
@@ -20,11 +26,11 @@
 .Menu-header {
   text-align: center;
   vertical-align: center;
-  background-color: white;
+  background-color: #f6fbff;
   color: #2e4053;
-  padding-top: 10px;
+  margin-top: 19px;
   font-weight: bold;
-  margin-right: 90px;
+  margin-right: 30px;
   font-size: 2.5ex;
 }
 
@@ -59,7 +65,8 @@
   color: #2e4053;
   padding-top: 8px;
   height: 34px;
-  margin-left: 150px;
+  margin-left: 15px;
+  margin-top: 7px;
   margin-right: 20px;
   font-weight: bold;
 }
@@ -92,4 +99,78 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.btn-login {
+  background-color: rgba(36, 41, 44, 0.9);
+  border: none;
+  width: 100%;
+  text-align: center;
+  padding: 14px;
+  border-radius: 4px;
+  color: white;
+}
+
+.login-form {
+  text-align: center;
+  align-content: center;
+  display: inline-block;
+  width: calc(30vw);
+}
+
+.fb-login {
+  background-color: rgb(51, 89, 157);
+}
+
+.input-login {
+  background: rgba(228, 243, 255, 0.527);
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 0;
+  color: #3e3e3e;
+}
+
+.athlete-content {
+  display: grid;
+  grid-auto-columns: 70px max-content;
+  grid-auto-rows: auto;
+  text-align: start;
+  padding-top: 9px;
+  width: 250px;
+}
+
+.athlete-image {
+  grid-column: 1;
+}
+
+.athlete-image-content {
+  grid-column: 1;
+  height: 41px;
+  width: 41px;
+  margin-left: 13px;
+  margin-top: 3px;
+  /* stroke-linecap: round; */
+  /* stroke-miterlimit: 10; */
+  stroke-width: 0px;
+  stroke: red;
+  fill: rgb(60, 106, 138);
+}
+
+.athlete-info {
+  padding-left: 0px;
+  padding-top: 4px;
+  grid-column: 2;
+}
+
+.athlete-name {
+  color: #33638a;
+  font-weight: 500;
+  font-size: 0.98em;
+}
+
+.athlete-details {
+  color: #a8adb4;
+  font-weight: 300;
+  font-size: 0.94em;
 }

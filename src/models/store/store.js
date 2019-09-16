@@ -1,7 +1,7 @@
 import { DataProvider } from '../../providers/data/dataProvider';
 import { Athlete } from '../../models/athlete/athlete';
 import { State } from './state';
-import { Period } from './period';
+import firebase from '../../firebase';
 import { observable, action, decorate } from 'mobx';
 
 var store = (function() {
@@ -39,7 +39,7 @@ class Store {
     this._provider = new DataProvider();
     this.loadAthletes();
     this.loadExercises();
-    this.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
+    // this.loadAthlete('Glwok6yOD5CgxJJ8x3aq');
   }
 
   async loadExercises() {
@@ -47,6 +47,7 @@ class Store {
       exercises.forEach(exercise => {
         this.exercises.push(exercise);
       });
+      console.log('exercises', exercises);
     });
   }
 
@@ -56,10 +57,16 @@ class Store {
       athletes.forEach(athlete => {
         this.athletes.push(athlete);
       });
-
       console.log('athletes', this.athletes);
       this.state.athletesLoading = false;
     });
+  }
+
+  async logOut() {
+    this.athlete.clear();
+    firebase.auth().signOut();
+    this.state.loggedIn = false;
+    this.state.activeMenuItem = 'login';
   }
 
   async loadAthlete(id) {
@@ -68,9 +75,7 @@ class Store {
     this.state.menuParent = 'overview';
     this.state.menuSelectedKeys = ['overview'];
     this._provider.loadAthlete(id, this.athlete).then(() => {
-      console.log('athlete loaded');
       this.athlete.loadSessionData().then(athlete => {
-        console.log('sessions loaded');
         console.log('Athlete:', athlete);
         this.athlete
           .getPeriodData(new Date(2018, 5, 1), new Date(2019, 9, 31))
@@ -89,5 +94,6 @@ decorate(Store, {
   exercises: observable,
   state: observable,
   loadAthlete: action,
-  loadAthletes: action
+  loadAthletes: action,
+  logOut: action
 });

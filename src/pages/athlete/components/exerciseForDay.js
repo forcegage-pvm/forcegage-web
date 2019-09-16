@@ -43,8 +43,8 @@ const maxRowStyle = {
   color: '#00325F'
 };
 
-const ExerciseForDay = observer(
-  class ExerciseForDay extends Component {
+const ExerciseData = observer(
+  class ExerciseData extends Component {
     constructor(props) {
       super(props);
       this.athlete = GetStore().athlete;
@@ -60,11 +60,9 @@ const ExerciseForDay = observer(
         sessionType:
           props.sessionType === undefined ? 'combined' : props.sessionType,
         expanded: {
-          '0': {
-            '0': {}
-          },
+          '0': { '0': {} },
           '1': { '0': {} },
-          '2': {}
+          '2': { '0': {} }
         },
         sorted: [
           {
@@ -320,7 +318,10 @@ const ExerciseForDay = observer(
       ) {
         return null;
       }
-      if (row.row._original.max) {
+      if (row.level <= 1) {
+        return <div>{Number(row.value).toFixed(2)}</div>;
+      }
+      if (row.row._original && row.row._original.max) {
         return <div>{Number(row.value).toFixed(2)}</div>;
       }
       var max = data.find(d => {
@@ -718,16 +719,6 @@ const ExerciseForDay = observer(
                           </span>
                         </Dropdown>
                       );
-
-                      return (
-                        <span className="tag-weight">
-                          <Icon
-                            style={{ marginLeft: '0px', color: 'yellow' }}
-                            name="chart line"
-                          />
-                          {row.value}
-                        </span>
-                      );
                     },
                     filterMethod: (filter, row) => {
                       if (filter.value === 'all' || row._aggregated) {
@@ -875,7 +866,7 @@ const ExerciseForDay = observer(
                         <div style={{ cursor: 'pointer' }}>
                           Avg
                           <Icon
-                            style={{ marginLeft: '5px', color: 'yellow' }}
+                            style={{ marginLeft: '5px', color: 'red' }}
                             name="chart line"
                           />
                         </div>
@@ -1267,9 +1258,7 @@ const ExerciseForDay = observer(
     }
 
     getData(day, exercise, sessionType) {
-      var data = [];
-      var newData = getDataForWeight(exercise, sessionType);
-      newData.forEach(d => data.push(d));
+      var data = getDataForWeight(exercise, sessionType);
       var grouped = _.groupBy(data, 'type');
       var gdata = [];
       Object.keys(grouped).forEach(key => {
@@ -1706,8 +1695,6 @@ function getDataForWeight(exercise, sessionType) {
     });
   });
   if (sessionType !== 'combined') {
-    console.log('sessionType', sessionType);
-    console.log('results', results);
     return results.filter(ex => ex.sessionType === sessionType);
   }
   return results;
@@ -1745,4 +1732,4 @@ const menuWeight = (
   </Menu>
 );
 
-export default ExerciseForDay;
+export default ExerciseData;

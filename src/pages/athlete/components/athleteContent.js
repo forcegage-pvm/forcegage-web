@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import '../athletePage.css';
-import { Spin, Result, Button, Statistic, Row, Col, Tabs } from 'antd';
+import { Spin, Alert, Button, Row, Col, Tabs } from 'antd';
 import { observer } from 'mobx-react';
 import { GetStore } from '../../../models/store/store';
-import ExerciseForDay from './exerciseForDay';
+import ExerciseData from './exerciseForDay';
+import { Header, Icon, Statistic } from 'semantic-ui-react';
+import AthleteOverview from './athleteOverview';
+import AthleteTests from './athleteTests';
 import _ from 'lodash';
 
 const { TabPane } = Tabs;
@@ -52,6 +55,13 @@ const AthleteContent = observer(
       ];
       let monthName = monthNames[monthNumber];
       return (
+        new Date(date).getDate() +
+        ' ' +
+        monthName +
+        " '" +
+        Number(new Date(date).getFullYear() - 2000)
+      );
+      return (
         <div className="content-date-tab">
           <div className="content-date-year">
             {Number(new Date(date).getFullYear())}
@@ -63,7 +73,6 @@ const AthleteContent = observer(
     };
 
     render() {
-      console.log('render');
       var render = false;
       if (
         !this.storeState.athleteLoading &&
@@ -87,74 +96,49 @@ const AthleteContent = observer(
         render = this.storeState.menuSelected;
       }
       var lastSession = _.last(this.athlete.sessions);
+      console.log('this.storeState.menuChild', this.storeState.menuChild);
+      var complete = this.storeState.menuChild == 'complete';
+      console.log('complete', complete);
 
       return (
         <div>
           {this.storeState.menuParent === 'overview' && (
+            <AthleteOverview></AthleteOverview>
+          )}
+          {this.storeState.menuParent === 'tests' && (
             <div>
-              <Spin
-                spinning={this.storeState.athleteLoading}
-                size="large"
-                tip="Loading athlete..."
-              >
-                <Row style={{ width: 'calc(25vw)', margin: '5px' }} gutter={16}>
-                  <Col span={12}>
-                    <Statistic
-                      title="Last Session"
-                      value={
-                        lastSession === undefined
-                          ? 'loading...'
-                          : lastSession.date
-                      }
-                    />
-                  </Col>
-                  <Col span={12}>
-                    <Statistic
-                      title="Last exercise"
-                      value={
-                        lastSession === undefined
-                          ? 'loading...'
-                          : lastSession.exercise
-                      }
-                    />
-                    <Button
-                      style={{ marginTop: 16 }}
-                      type="primary"
-                      onClick={() => {
-                        this.storeState.menuParent = 'exercises';
-                        this.storeState.menuChild = `exercise:${lastSession.exercise}`;
-                        this.storeState.menuSelectedKeys = [
-                          `exercise:${lastSession.exercise}`
-                        ];
-                        this.storeState.menuSelected = true;
-                        // render = true
-                      }}
-                    >
-                      View
-                    </Button>
-                  </Col>
-                </Row>
-              </Spin>
+              <AthleteTests></AthleteTests>
             </div>
           )}
           {render && (
-            <Tabs defaultActiveKey="-1" tabPosition="top" size="small">
-              <TabPane tab="Overall" key={-1}>
-                <div>
-                  <ExerciseForDay exercise={exercise}></ExerciseForDay>
-                </div>
-              </TabPane>
-              {exDays.map((e, index) => (
-                <TabPane tab={this.formatDate(e.date)} key={index}>
+            <div>
+              <Header as="h3">
+                <Icon name="heart outline" color="red" />
+                <Header.Content>{exercise.exercise}</Header.Content>
+              </Header>
+              <Tabs
+                defaultActiveKey="-1"
+                tabPosition="top"
+                size="small"
+                style={{ marginTop: '-5px' }}
+              >
+                <TabPane tab="Overall" key={-1}>
                   <div>
-                    <ExerciseForDay
-                      day={e.date}
-                      exercise={e.exercise}
-                    ></ExerciseForDay>
+                    <ExerciseData exercise={exercise}></ExerciseData>
                   </div>
                 </TabPane>
-              ))}
-            </Tabs>
+                {exDays.map((e, index) => (
+                  <TabPane tab={this.formatDate(e.date)} key={index}>
+                    <div>
+                      <ExerciseData
+                        day={e.date}
+                        exercise={e.exercise}
+                      ></ExerciseData>
+                    </div>
+                  </TabPane>
+                ))}
+              </Tabs>
+            </div>
           )}
         </div>
       );

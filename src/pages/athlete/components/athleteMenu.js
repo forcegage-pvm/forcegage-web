@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
 import { Message } from 'semantic-ui-react';
-import { Menu, Icon, Select } from 'antd';
+import { Menu, Badge, Select } from 'antd';
 import '../athletePage.css';
 import { observer, Observer } from 'mobx-react';
 import { GetStore } from '../../../models/store/store';
+import _ from 'lodash';
 
 const { SubMenu } = Menu;
 const { Option } = Select;
+
+const styles = {
+  width: 250,
+  display: 'inline-table',
+  marginRight: 10
+};
 
 const AthleteMenu = observer(
   class AthleteMenu extends Component {
@@ -41,16 +48,9 @@ const AthleteMenu = observer(
       this.storeState.menuParent = item.keyPath[item.keyPath.length - 1];
       this.storeState.menuChild = item.keyPath[0];
       this.storeState.menuSelected = true;
-      console.log(
-        'this.storeState.menuSelectedKeys',
-        this.storeState.menuSelectedKeys
-      );
-      console.log('this.storeState.menuParent', this.storeState.menuParent);
-      console.log('this.storeState.menuChild', this.storeState.menuChild);
     };
 
     handleAthleteChange = value => {
-      console.log('value', value);
       GetStore().loadAthlete(value);
     };
 
@@ -77,16 +77,8 @@ const AthleteMenu = observer(
     };
 
     render() {
-      const athleteInfo = ['body weight: ' + this.athlete.bodyWeight];
-
       return (
         <div>
-          <Message
-            info
-            size="small"
-            header={this.athlete.fullName}
-            content={athleteInfo}
-          />
           <Menu
             onClick={this.handleItemClick}
             defaultSelectedKeys={'overview'}
@@ -100,10 +92,15 @@ const AthleteMenu = observer(
                 <Menu.Item key={`exercise:${e}`}>{e}</Menu.Item>
               ))}
             </SubMenu>
-            <SubMenu key="tests" title="Tests">
-              <Menu.Item key={`test:${1}`}>Complete</Menu.Item>
-              <Menu.Item key={`test:${2}`}>Neuro-muscular</Menu.Item>
-            </SubMenu>
+            <Menu.Item key={`tests`} title="Tests">
+              <Badge
+                count={this.athlete.tests.length}
+                showZero
+                offset={[10, 0]}
+              >
+                Tests
+              </Badge>
+            </Menu.Item>
             <Menu.Item key="personal-bests">Personal Bests</Menu.Item>
           </Menu>
         </div>
