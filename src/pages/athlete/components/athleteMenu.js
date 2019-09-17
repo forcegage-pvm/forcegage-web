@@ -48,6 +48,7 @@ const AthleteMenu = observer(
       this.storeState.menuParent = item.keyPath[item.keyPath.length - 1];
       this.storeState.menuChild = item.keyPath[0];
       this.storeState.menuSelected = true;
+      this.storeState.selectedDay = 'overall';
     };
 
     handleAthleteChange = value => {

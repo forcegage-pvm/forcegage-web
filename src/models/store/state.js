@@ -10,6 +10,7 @@ export class State {
   athleteLoading = true;
   loggedIn = false;
   activeMenuItem = 'login';
+  selectedDay = 'overall';
 }
 
 decorate(State, {
@@ -20,5 +21,6 @@ decorate(State, {
   athletesLoading: observable,
   athleteLoading: observable,
   activeMenuItem: observable,
+  selectedDay: observable,
   loggedIn: observable
 });

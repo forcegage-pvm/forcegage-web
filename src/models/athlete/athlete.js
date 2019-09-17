@@ -135,10 +135,13 @@ export class Athlete {
       var ex = exercises.find(
         exercise => exercise.exercise === test.summary.exercises[0].exercise
       );
+      var types = [];
       var fullTest = false;
       test.summary.exercises.forEach(exercise => {
-        fullTest = fullTest || exercise.types.length == 3;
+        exercise.types.forEach(t => types.push(t.type));
       });
+      var dtypes = [...new Set(types.map(x => x))];
+      fullTest = dtypes.length === 3;
       test.complete = fullTest;
       test.class = ex['exercise-class'];
       test.group = ex['group'];

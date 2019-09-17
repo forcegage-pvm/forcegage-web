@@ -5,13 +5,15 @@ import { GetStore } from '../../../models/store/store';
 import { Timeline, Icon as IconAnt } from 'antd';
 import { Header, Icon } from 'semantic-ui-react';
 import _ from 'lodash';
+import ExerciseData from './exerciseForDay';
 
 const AthleteTests = observer(
   class AthleteTests extends Component {
     constructor(props) {
       super(props);
       this.state = {
-        mounted: false
+        mounted: false,
+        currentTest: ''
       };
       this.athlete = GetStore().athlete;
       this.storeState = GetStore().state;
@@ -31,56 +33,77 @@ const AthleteTests = observer(
       });
     };
 
-    onClick = e => {
+    onClick = (e, value) => {
       e.preventDefault();
     };
 
+    selectTest = e => {
+      console.log(e);
+      this.setState({
+        currentTest: e
+      });
+    };
+
     render() {
+      const { currentTest } = this.state;
+      var test = this.athlete.tests.find(t => t.test === currentTest);
       return (
         <div>
-          <Header as="h3">
-            <Icon name="heartbeat" color="green" />
-            <Header.Content>Tests</Header.Content>
-          </Header>
-          <Timeline mode="alternate" style={{ width: '450px' }}>
-            {this.athlete.tests.map(test => {
-              if (test.complete === false) {
-                return (
-                  <Timeline.Item onClick={this.selectTest} position="right">
-                    <a href="" onClick={this.onClick}>
-                      <span>
-                        <span style={{ fontWeight: '600' }}>{test.test}</span>
-                        <span style={{ fontWeight: '200' }}>
-                          {' ' + test.class + ' (' + test.group + ')'}
-                        </span>
-                      </span>
-                    </a>
-                  </Timeline.Item>
-                );
-              } else {
-                return (
-                  <Timeline.Item
-                    dot={<Icon name="heart" style={{ fontSize: '16px' }} />}
-                    color="red"
-                  >
-                    <a href="" onClick={this.onClick}>
-                      <span>
-                        <span style={{ fontWeight: '600' }}>{test.test}</span>
-                        <span style={{ fontWeight: '200' }}>
-                          {' ' + test.class + ' (' + test.group + ')'}
-                        </span>
-                      </span>
-                    </a>
-                  </Timeline.Item>
-                );
-              }
-            })}
-            {/* <Timeline.Item>Create a services site 2015-09-01</Timeline.Item>
-                    <Timeline.Item>Solve initial network problems 2015-09-01</Timeline.Item>
-                    <Timeline.Item dot={<Icon type="clock-circle-o" style={{ fontSize: '16px' }} />} color="red">Technical testing 2015-09-01</Timeline.Item>
-                    <Timeline.Item>Network problems being solved 2015-09-01</Timeline.Item> */}
-          </Timeline>
-          ,
+          {currentTest !== '' && (
+            <div>
+              <ExerciseData isTest={true} test={test}></ExerciseData>
+            </div>
+          )}
+          {currentTest === '' && (
+            <div>
+              <Header as="h3">
+                <Icon name="child" color="green" />
+                <Header.Content>Tests</Header.Content>
+              </Header>
+              <Timeline mode="alternate" style={{ width: '450px' }}>
+                {this.athlete.tests.map(test => {
+                  if (test.complete === false) {
+                    return (
+                      <Timeline.Item
+                        onClick={() => this.selectTest(test.test)}
+                        position="right"
+                      >
+                        <a href="" onClick={this.onClick}>
+                          <span>
+                            <span style={{ fontWeight: '600' }}>
+                              {test.test}
+                            </span>
+                            <span style={{ fontWeight: '200' }}>
+                              {' ' + test.class + ' (' + test.group + ')'}
+                            </span>
+                          </span>
+                        </a>
+                      </Timeline.Item>
+                    );
+                  } else {
+                    return (
+                      <Timeline.Item
+                        onClick={() => this.selectTest(test.test)}
+                        dot={<Icon name="heart" style={{ fontSize: '16px' }} />}
+                        color="red"
+                      >
+                        <a href="" onClick={this.onClick}>
+                          <span>
+                            <span style={{ fontWeight: '600' }}>
+                              {test.test}
+                            </span>
+                            <span style={{ fontWeight: '200' }}>
+                              {' ' + test.class + ' (' + test.group + ')'}
+                            </span>
+                          </span>
+                        </a>
+                      </Timeline.Item>
+                    );
+                  }
+                })}
+              </Timeline>
+            </div>
+          )}
         </div>
       );
     }

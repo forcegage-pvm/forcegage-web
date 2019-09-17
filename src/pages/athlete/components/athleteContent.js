@@ -8,6 +8,7 @@ import { Header, Icon, Statistic } from 'semantic-ui-react';
 import AthleteOverview from './athleteOverview';
 import AthleteTests from './athleteTests';
 import _ from 'lodash';
+import DayBrowser from './dayBrowser';
 
 const { TabPane } = Tabs;
 
@@ -16,19 +17,26 @@ const AthleteContent = observer(
     constructor(props) {
       super(props);
       this.state = {
-        mounted: false
+        mounted: false,
+        currentExercise: undefined,
+        days: []
       };
-      this.setStateFromProps(props);
       this.athlete = GetStore().athlete;
       this.storeState = GetStore().state;
     }
 
     setStateFromProps = props => {
-      this.setState({}, () => {});
+      this.setState(
+        {
+          currentExercise: undefined
+        },
+        () => {}
+      );
     };
 
     componentWillReceiveProps = props => {
       this.setStateFromProps(props);
+      console.log('componentWillReceiveProps', props);
     };
 
     componentDidMount = () => {
@@ -54,25 +62,16 @@ const AthleteContent = observer(
         'Dec'
       ];
       let monthName = monthNames[monthNumber];
-      return (
-        new Date(date).getDate() +
-        ' ' +
-        monthName +
-        " '" +
-        Number(new Date(date).getFullYear() - 2000)
-      );
-      return (
-        <div className="content-date-tab">
-          <div className="content-date-year">
-            {Number(new Date(date).getFullYear())}
-          </div>
-          <div className="content-date-month">{monthName}</div>
-          <div className="content-date-day">{new Date(date).getDate()}</div>
-        </div>
-      );
+      return new Date(date).getDate() + ' ' + monthName;
     };
 
+    componentWillUpdate() {
+      return true;
+    }
+
     render() {
+      const { selectedDay } = this.storeState;
+
       var render = false;
       if (
         !this.storeState.athleteLoading &&
@@ -83,6 +82,7 @@ const AthleteContent = observer(
         var exercise = this.athlete.period.summary.exercises.find(
           e => e.exercise === paths[1]
         );
+
         this.athlete.period.exerciseDays.forEach(ed => {
           ed.summary.exercises.forEach(ede => {
             if (ede.exercise === exercise.exercise) {
@@ -93,12 +93,27 @@ const AthleteContent = observer(
             }
           });
         });
+
+        if (selectedDay !== 'overall') {
+          exercise = exDays.find(e => e.date == selectedDay).exercise;
+        }
+
         render = this.storeState.menuSelected;
+        var days = exDays.map((e, index) => ({
+          type: 'date',
+          key: e.date,
+          day: this.formatDate(e.date),
+          year: Number(new Date(e.date).getFullYear()),
+          text: ''
+        }));
+        days.unshift({
+          type: 'text',
+          text: 'Overall',
+          key: 'overall'
+        });
       }
-      var lastSession = _.last(this.athlete.sessions);
-      console.log('this.storeState.menuChild', this.storeState.menuChild);
-      var complete = this.storeState.menuChild == 'complete';
-      console.log('complete', complete);
+      console.log('render', render);
+      console.log('days', days);
 
       return (
         <div>
@@ -111,33 +126,17 @@ const AthleteContent = observer(
             </div>
           )}
           {render && (
-            <div>
-              <Header as="h3">
-                <Icon name="heart outline" color="red" />
-                <Header.Content>{exercise.exercise}</Header.Content>
-              </Header>
-              <Tabs
-                defaultActiveKey="-1"
-                tabPosition="top"
-                size="small"
-                style={{ marginTop: '-5px' }}
-              >
-                <TabPane tab="Overall" key={-1}>
-                  <div>
-                    <ExerciseData exercise={exercise}></ExerciseData>
-                  </div>
-                </TabPane>
-                {exDays.map((e, index) => (
-                  <TabPane tab={this.formatDate(e.date)} key={index}>
-                    <div>
-                      <ExerciseData
-                        day={e.date}
-                        exercise={e.exercise}
-                      ></ExerciseData>
-                    </div>
-                  </TabPane>
-                ))}
-              </Tabs>
+            <div
+              style={{ alignContent: 'start', margin: '0px', padding: '0px' }}
+            >
+              <DayBrowser
+                exercise={exercise.exercise}
+                days={days}
+                onChange={e => {
+                  this.storeState.selectedDay = e;
+                }}
+              ></DayBrowser>
+              <ExerciseData isTest={false} exercise={exercise}></ExerciseData>
             </div>
           )}
         </div>

@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import { Button, Tooltip, Dropdown, Menu, Radio } from 'antd';
+import { Select, Tooltip, Dropdown, Menu, Radio } from 'antd';
 import _ from 'lodash';
 import { observer } from 'mobx-react';
 import { GetStore } from '../../../models/store/store';
 import ReactTable from 'react-table';
 import { Icon } from 'semantic-ui-react';
 import uniqid from 'uniqid';
-import { Select } from 'antd';
-
+import { Header, Image, Segment, Sidebar, Button } from 'semantic-ui-react';
 import 'react-table/react-table.css';
 import '../athletePage.css';
 
@@ -52,11 +51,15 @@ const ExerciseData = observer(
         mounted: false,
         day: props.day,
         exercise: props.exercise,
-        data: this.getData(
-          props.day,
-          props.exercise,
-          props.sessionType === undefined ? 'combined' : props.sessionType
-        ),
+        isTest: props.isTest,
+        drawerVisible: false,
+        data: props.isTest
+          ? this.getTestData(props.test)
+          : this.getData(
+              props.day,
+              props.exercise,
+              props.sessionType === undefined ? 'combined' : props.sessionType
+            ),
         sessionType:
           props.sessionType === undefined ? 'combined' : props.sessionType,
         expanded: {
@@ -83,11 +86,15 @@ const ExerciseData = observer(
         {
           day: props.day,
           exercise: props.exercise,
-          data: this.getData(
-            props.day,
-            props.exercise,
-            props.sessionType === undefined ? 'combined' : props.sessionType
-          ),
+          isTest: props.isTest,
+          drawerVisible: false,
+          data: props.isTest
+            ? this.getTestData(props.test)
+            : this.getData(
+                props.day,
+                props.exercise,
+                props.sessionType === undefined ? 'combined' : props.sessionType
+              ),
           sessionType:
             props.sessionType === undefined ? 'combined' : props.sessionType
         },
@@ -439,25 +446,23 @@ const ExerciseData = observer(
       this.setState({ deviations: value });
     };
 
-    render() {
-      const { day, data, deviations, exercise, sessionType } = this.state;
-
-      if (this.athlete.loaded) {
-        var dayData = this.athlete.period.exerciseDays.find(
-          d => day === d.date.toISOString().slice(0, 10)
-        );
-      }
-      if (sessionType !== 'combined') {
-        var sortedData = data.filter(d => d.sessionType === sessionType);
-      } else {
-        var sortedData = data;
-      }
-      sortedData.sort((a, b) => (a.side < b.side ? 1 : -1));
-      sortedData.sort((a, b) => (a.weight > b.weight ? 1 : -1));
+    HorizontalSidebar = ({ animation, direction, visible }) => {
+      const { day, exercise, sessionType, isTest } = this.state;
 
       return (
-        <div>
-          <div style={{ marginBottom: '10px' }}>
+        <Sidebar
+          as={Segment}
+          animation={animation}
+          direction={direction}
+          visible={visible}
+        >
+          <div
+            style={{
+              marginBottom: '10px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
             <span>
               <Select
                 mode="multiple"
@@ -473,778 +478,856 @@ const ExerciseData = observer(
                 <Option key={'power-to-weight'}>Power to weight</Option>
                 <Option key={'contact-time'}>Contact Time</Option>
               </Select>
-              <Radio.Group
-                value={sessionType}
-                buttonStyle="solid"
-                size="default"
-                style={{ marginLeft: '15px' }}
-                onChange={e => {
-                  this.setState(
-                    {
-                      sessionType: e.target.value,
-                      data: this.getData(day, exercise, e.target.value)
-                    },
-                    () => {
-                      this.removeMaxRows();
-                    }
-                  );
-                }}
-              >
-                <Radio.Button value="test">Test</Radio.Button>
-                <Radio.Button value="exercise">Exercise</Radio.Button>
-                <Radio.Button value="combined">Combined</Radio.Button>
-              </Radio.Group>
+              {!isTest && (
+                <Radio.Group
+                  value={sessionType}
+                  buttonStyle="solid"
+                  size="default"
+                  style={{ marginLeft: '15px' }}
+                  onChange={e => {
+                    this.setState(
+                      {
+                        sessionType: e.target.value,
+                        data: this.getData(day, exercise, e.target.value),
+                        drawerVisible: true
+                      },
+                      () => {
+                        this.removeMaxRows();
+                      }
+                    );
+                  }}
+                >
+                  <Radio.Button value="test">Test</Radio.Button>
+                  <Radio.Button value="exercise">Exercise</Radio.Button>
+                  <Radio.Button value="combined">Combined</Radio.Button>
+                </Radio.Group>
+              )}
             </span>
           </div>
-          <ReactTable
-            data={sortedData}
-            filterable
-            columns={[
-              {
-                Header: ' ',
-                columns: [
-                  {
-                    Header: 'Body Part',
-                    accessor: 'bodyPart',
-                    show: false
-                  }
-                ]
-              },
-              {
-                Header: 'Exercise',
-                columns: [
-                  {
-                    Header: 'Class',
-                    accessor: 'exerciseClass',
-                    minWidth: 20,
-                    show: false,
-                    aggregate: vals => getUniqArrayStr(vals)
-                  },
-                  {
-                    Header: 'Type',
-                    id: 'type',
-                    width: 150,
-                    Pivot: cellInfo => {
-                      if (cellInfo.isExpanded) {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i className="fa fa-caret-down"></i>
-                            </div>
-                            <div className="expand-value">{cellInfo.value}</div>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i className="fa fa-caret-right"></i>
-                            </div>
-                            <div className="expand-value">{cellInfo.value}</div>
-                          </div>
-                        );
-                      }
-                    },
-                    accessor: d => d.type,
-                    aggregate: vals => getUniqArrayStr(vals),
-                    sortMethod: (a, b) => {
-                      if (a === b) {
-                        return 0;
-                      }
-                      var aIndex = sortOrder.indexOf(a);
-                      var bIndex = sortOrder.indexOf(b);
-                      return aIndex > bIndex ? 1 : -1;
-                    },
-                    filterMethod: (filter, row) => {
-                      if (filter.value === 'all') {
-                        return true;
-                      }
-                      return row[filter.id].includes(filter.value);
-                    },
-                    Filter: ({ filter, onChange }) => {
-                      this.bestPowerIndex = [];
-                      var types = [...new Set(data.map(x => x.type))];
-                      return (
-                        <select
-                          onChange={event => onChange(event.target.value)}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#00194E',
-                            color: 'white'
-                          }}
-                          value={filter ? filter.value : 'all'}
-                        >
-                          <option value="all">All</option>
-                          {types.map(type => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                      );
-                    }
-                  },
-                  {
-                    Header: 'Group',
-                    id: 'group',
-                    width: 90,
-                    accessor: d => d.group,
-                    aggregate: vals => getUniqArrayStr(vals),
-                    Pivot: cellInfo => {
-                      if (cellInfo.isExpanded) {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i class="fa fa-caret-down"></i>
-                            </div>
-                            <div className="expand-value-group">
-                              {cellInfo.value}
-                            </div>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="expand">
-                            <div className="expand-icon">
-                              <i className="fa fa-caret-right"></i>
-                            </div>
-                            <div className="expand-value-group">
-                              {cellInfo.value}
-                            </div>
-                          </div>
-                        );
-                      }
-                    },
-                    Cell: row => {
-                      return (
-                        <div
-                          style={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {row.value}
-                        </div>
-                      );
-                    },
-                    filterMethod: (filter, row) => {
-                      if (filter.value === 'all') {
-                        return true;
-                      }
-                      return row[filter.id].includes(filter.value);
-                    },
-                    Filter: ({ filter, onChange }) => {
-                      this.bestPowerIndex = [];
-                      var groups = [...new Set(data.map(x => x.group))];
-                      return (
-                        <select
-                          onChange={event => onChange(event.target.value)}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#00A4D6',
-                            color: 'white'
-                          }}
-                          value={filter ? filter.value : 'all'}
-                        >
-                          <option value="all">All</option>
-                          {groups.map(group => (
-                            <option key={group} value={group}>
-                              {group}
-                            </option>
-                          ))}
-                        </select>
-                      );
-                    }
-                  },
+        </Sidebar>
+      );
+    };
 
-                  {
-                    Header: 'Weight',
-                    id: 'weight',
-                    width: 65,
-                    accessor: d => d.weight,
-                    aggregate: (vals, rows) => {
-                      return getUniqArrayStr(vals, rows);
-                    },
-                    getProps: this.getMaxRowProps,
-                    Cell: row => {
-                      if (row.level <= 1) {
-                        return (
-                          <div
-                            style={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {row.value}
-                          </div>
-                        );
-                      }
-                      if (row.value === 999999) {
-                        const padding = {
-                          paddingLeft: '10px',
-                          paddingRight: '10px'
-                        };
-                        if (row.row.side === 'Left') {
-                          return (
-                            <span className="best-power-left" style={padding}>
-                              {'Max'}
-                            </span>
-                          );
-                        } else if (row.row.side === 'Right') {
-                          return (
-                            <span className="best-power-right" style={padding}>
-                              {'Max'}
-                            </span>
-                          );
-                        }
-                        return (
-                          <span className="best-power-both" style={padding}>
-                            {'Max'}
-                          </span>
-                        );
-                      }
-                      return (
-                        <Dropdown
-                          trigger={['click']}
-                          overlay={menuWeight}
-                          style={{ color: 'white', backgroundColor: 'red' }}
-                        >
-                          <span
-                            className="tag-weight"
-                            style={{ cursor: 'pointer' }}
-                          >
-                            {row.value}
-                          </span>
-                        </Dropdown>
-                      );
-                    },
-                    filterMethod: (filter, row) => {
-                      if (filter.value === 'all' || row._aggregated) {
-                        return true;
-                      }
-                      var rowValue = row[filter.id];
-                      if (
-                        typeof rowValue === 'string' ||
-                        rowValue instanceof String
-                      ) {
-                        return row[filter.id] === filter.value;
-                      } else {
-                        return String(row[filter.id]) === filter.value;
-                      }
-                    },
-                    Filter: ({ filter, onChange }) => {
-                      this.resetMaxIndexes();
-                      var weights = [
-                        ...new Set(
-                          data.map(x => {
-                            if (x.weight !== 999999) {
-                              return Number(x.weight);
-                            }
-                          })
-                        )
-                      ];
-                      weights.sort((a, b) => (a > b ? 1 : -1));
-                      return (
-                        <select
-                          onChange={event => onChange(event.target.value)}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#005312',
-                            color: 'white'
-                          }}
-                          value={filter ? filter.value : 'all'}
-                        >
-                          <option value="all">All</option>
-                          {weights.map(weight => (
-                            <option value={weight}>{weight}</option>
-                          ))}
-                        </select>
-                      );
-                    }
-                  },
-                  {
-                    Header: 'Side',
-                    id: 'side',
-                    width: 75,
-                    accessor: 'side',
-                    aggregate: vals => getUniqArrayStr(vals),
-                    getProps: this.getMaxRowProps,
-                    Cell: row => {
-                      if (row.level >= 2) {
-                        if (row.value === 'Left') {
-                          return (
-                            <span className="tag-side-left">
-                              <Icon name="angle left"></Icon>
-                              {row.value}
-                            </span>
-                          );
-                        } else if (row.value === 'Right') {
-                          return (
-                            <span className="tag-side-right">
-                              {row.value}
-                              <Icon name="angle right"></Icon>
-                            </span>
-                          );
-                        } else if (row.value === 'Both') {
-                          return (
-                            <span className="tag-side-both">
-                              <Icon name="angle left"></Icon>
-                              {row.value}
-                              <Icon name="angle right"></Icon>
-                            </span>
-                          );
-                        } else {
-                          return (
-                            <div
-                              style={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {row.value}
-                            </div>
-                          );
-                        }
-                      }
-                      return (
-                        <div
-                          style={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {row.value}
-                        </div>
-                      );
-                    },
-                    filterMethod: (filter, row) => {
-                      if (filter.value === 'all') {
-                        return true;
-                      }
-                      return row[filter.id].includes(filter.value);
-                    },
-                    Filter: ({ filter, onChange }) => {
-                      this.bestPowerIndex = [];
-                      var sides = [...new Set(data.map(x => x.side))];
-                      return (
-                        <select
-                          onChange={event => onChange(event.target.value)}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#FA3200',
-                            color: 'white'
-                          }}
-                          value={filter ? filter.value : 'all'}
-                        >
-                          <option value="all">All</option>
-                          {sides.map(side => (
-                            <option value={side}>{side}</option>
-                          ))}
-                        </select>
-                      );
-                    }
-                  }
-                ],
-                Cell: row => (
-                  <div style={{ fontWeight: '800' }}>{row.value}</div>
-                )
-              },
-              {
-                Header: 'Power(W)',
-                columns: [
-                  {
-                    Header: (
-                      <Dropdown
-                        trigger={['click']}
-                        overlay={menu}
-                        style={{ color: 'white', backgroundColor: 'red' }}
-                      >
-                        <div style={{ cursor: 'pointer' }}>
-                          Avg
-                          <Icon
-                            style={{ marginLeft: '5px', color: 'red' }}
-                            name="chart line"
-                          />
-                        </div>
-                      </Dropdown>
-                    ),
-                    filterable: false,
-                    headerClassName: 'header-avg',
-                    accessor: 'power',
-                    filterable: false,
-                    width: 65,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row),
-                    Filter: ({ filter, onChange }) => {
-                      return <div style={{ backgroundColor: 'white' }}></div>;
-                    }
-                  },
-                  {
-                    Header: 'Max',
-                    headerClassName: 'header-max',
-                    accessor: 'best:power',
-                    filterable: false,
-                    width: 65,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row),
-                    Filter: () => {
-                      return '';
-                    }
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'power:deviation',
-                    show: deviations.includes('power'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'power:deviation:weight',
-                    show: deviations.includes('power'),
-                    width: 42,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Force(kgf)',
-                columns: [
-                  {
-                    Header: 'Avg',
-                    headerClassName: 'header-avg',
-                    accessor: 'force',
-                    width: 60,
-                    filterable: false,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: 'Max',
-                    accessor: 'fmax',
-                    headerClassName: 'header-max',
-                    width: 60,
-                    filterable: false,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'force:deviation',
-                    show: deviations.includes('force'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'power:deviation:weight',
-                    show: deviations.includes('force'),
-                    width: 42,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Displacement (degrees)',
-                columns: [
-                  {
-                    Header: 'Conc',
-                    accessor: 'displacement-concentric',
-                    className: 'cell-value',
-                    headerClassName: 'header-avg',
-                    filterable: false,
-                    width: 55,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row, 'degrees')
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'displacement-concentric:deviation',
-                    show: deviations.includes('displacement'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'displacement-concentric:deviation:weight',
-                    show: deviations.includes('displacement'),
-                    width: 42,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  },
-                  {
-                    Header: 'Ecc',
-                    accessor: 'displacement-eccentric',
-                    headerClassName: 'header-avg',
-                    className: 'cell-value',
-                    width: 55,
-                    filterable: false,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row, 'degrees')
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'displacement-eccentric:deviation',
-                    show: deviations.includes('displacement'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'displacement-eccentric:deviation:weight',
-                    show: deviations.includes('displacement'),
-                    width: 42,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Power to weight(W/kg)',
-                columns: [
-                  {
-                    Header: 'Avg',
-                    accessor: 'power-to-weight',
-                    className: 'cell-value',
-                    headerClassName: 'header-avg',
-                    filterable: false,
-                    width: 75,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: 'Max',
-                    headerClassName: 'header-max',
-                    accessor: 'best:power-to-weight',
-                    filterable: false,
-                    width: 65,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row),
-                    Filter: () => {
-                      return '';
-                    }
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'power-to-weight:deviation',
-                    show: deviations.includes('power-to-weight'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'power-to-weight:deviation:weight',
-                    show: deviations.includes('power-to-weight'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Acceleration (m/s2)',
-                columns: [
-                  {
-                    Header: 'Avg',
-                    accessor: 'acceleration',
-                    className: 'cell-value',
-                    headerClassName: 'header-avg',
-                    filterable: false,
-                    width: 75,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: 'Max',
-                    headerClassName: 'header-max',
-                    accessor: 'best:acceleration',
-                    filterable: false,
-                    width: 65,
-                    className: 'cell-value',
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row),
-                    Cell: row => this.getCellRender(row),
-                    Filter: () => {
-                      return '';
-                    }
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'acceleration:deviation',
-                    show: deviations.includes('acceleration'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'acceleration:deviation:weight',
-                    show: deviations.includes('acceleration'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Velocity(m/s)',
-                columns: [
-                  {
-                    Header: 'Avg',
-                    id: 'velocity',
-                    accessor: 'velocity',
-                    className: 'cell-value',
-                    headerClassName: 'header-avg',
-                    width: 50,
-                    filterable: false,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row, true),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'velocity:deviation',
-                    show: deviations.includes('velocity'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'velocity:deviation:weight',
-                    show: deviations.includes('velocity'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
-              },
-              {
-                Header: 'Contact Time(s)',
-                columns: [
-                  {
-                    Header: 'Avg',
-                    id: 'contact-time',
-                    accessor: 'contact-time',
-                    className: 'cell-value',
-                    headerClassName: 'header-avg',
-                    width: 50,
-                    filterable: false,
-                    getProps: this.getMaxRowProps,
-                    aggregate: this.getAggregate,
-                    Aggregated: row => this.getAggregateRender(row, true),
-                    Cell: row => this.getCellRender(row)
-                  },
-                  {
-                    Header: this.getSideDeviationHeader(),
-                    filterable: false,
-                    accessor: 'contact-time:deviation',
-                    show: deviations.includes('contact-time'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getSideDeviationRender
-                  },
-                  {
-                    Header: this.getWeightDeviationHeader(),
-                    filterable: false,
-                    accessor: 'contact-time:deviation:weight',
-                    show: deviations.includes('contact-time'),
-                    width: 48,
-                    aggregate: vals => Number(_.mean(vals).toFixed(2)),
-                    getProps: this.getMaxRowProps,
-                    Cell: this.getWeightDeviationRender
-                  }
-                ]
+    render() {
+      const {
+        day,
+        data,
+        deviations,
+        exercise,
+        sessionType,
+        isTest,
+        drawerVisible
+      } = this.state;
+
+      if (this.athlete.loaded) {
+        var dayData = this.athlete.period.exerciseDays.find(
+          d => day === d.date.toISOString().slice(0, 10)
+        );
+      }
+      if (sessionType !== 'combined') {
+        var sortedData = data.filter(d => d.sessionType === sessionType);
+      } else {
+        var sortedData = data;
+      }
+      sortedData.sort((a, b) => (a.side < b.side ? 1 : -1));
+      sortedData.sort((a, b) => (a.weight > b.weight ? 1 : -1));
+
+      return (
+        <div style={{ border: 'none' }}>
+          {/* <Button onClick={() => {
+            this.setState({ drawerVisible: true });
+          }}>push me</Button> */}
+          <Sidebar.Pushable
+            as={Segment}
+            onClick={() => {
+              if (drawerVisible) {
+                this.setState({ drawerVisible: false });
               }
-            ]}
-            pivotBy={['type', 'group']}
-            showPagination={false}
-            defaultPageSize={10}
-            minRows={17}
-            sortable={false}
-            resizable={false}
-            getTheadProps={getHeaderStyle}
-            getTheadGroupProps={getHeaderGroupStyle}
-            getTheadFilterThProps={getHeaderFilterStyle}
-            getTheadTrProps={getHeaderStyle}
-            getTrProps={getRowStyle}
-            getTrGroupProps={getGroupRowStyle}
-            getTdProps={getRowDataStyle}
-            expanded={this.state.expanded}
-            onExpandedChange={expanded => {
-              this.setState({ expanded });
             }}
-            filtered={this.state.filtered}
-            onFilteredChange={filtered => this.setState({ filtered })}
-            sorted={this.state.sorted}
-            onSortedChange={sorted => this.setState({ sorted })}
-            className="data-table"
-          />
+            style={{ border: 'none' }}
+          >
+            <this.HorizontalSidebar
+              animation={'overlay'}
+              direction={'top'}
+              width="very thin"
+              visible={drawerVisible}
+              onHide={() => this.setState({ drawerVisible: false })}
+            />
+            <Sidebar.Pusher dimmed={drawerVisible}>
+              <Segment basic>
+                <ReactTable
+                  data={sortedData}
+                  filterable
+                  columns={[
+                    {
+                      Header: ' ',
+                      columns: [
+                        {
+                          Header: 'Body Part',
+                          accessor: 'bodyPart',
+                          show: false
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Exercise',
+                      columns: [
+                        {
+                          Header: 'Class',
+                          accessor: 'exerciseClass',
+                          minWidth: 20,
+                          show: false,
+                          aggregate: vals => getUniqArrayStr(vals)
+                        },
+                        {
+                          Header: 'Type',
+                          id: 'type',
+                          width: 150,
+                          Pivot: cellInfo => {
+                            if (cellInfo.isExpanded) {
+                              return (
+                                <div className="expand">
+                                  <div className="expand-icon">
+                                    <i className="fa fa-caret-down"></i>
+                                  </div>
+                                  <div className="expand-value">
+                                    {cellInfo.value}
+                                  </div>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="expand">
+                                  <div className="expand-icon">
+                                    <i className="fa fa-caret-right"></i>
+                                  </div>
+                                  <div className="expand-value">
+                                    {cellInfo.value}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          },
+                          accessor: d => d.type,
+                          aggregate: vals => getUniqArrayStr(vals),
+                          sortMethod: (a, b) => {
+                            if (a === b) {
+                              return 0;
+                            }
+                            var aIndex = sortOrder.indexOf(a);
+                            var bIndex = sortOrder.indexOf(b);
+                            return aIndex > bIndex ? 1 : -1;
+                          },
+                          filterMethod: (filter, row) => {
+                            if (filter.value === 'all') {
+                              return true;
+                            }
+                            return row[filter.id].includes(filter.value);
+                          },
+                          Filter: ({ filter, onChange }) => {
+                            this.bestPowerIndex = [];
+                            var types = [...new Set(data.map(x => x.type))];
+                            return (
+                              <select
+                                onChange={event => onChange(event.target.value)}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: '#00194E',
+                                  color: 'white'
+                                }}
+                                value={filter ? filter.value : 'all'}
+                              >
+                                <option value="all">All</option>
+                                {types.map(type => (
+                                  <option key={type} value={type}>
+                                    {type}
+                                  </option>
+                                ))}
+                              </select>
+                            );
+                          }
+                        },
+                        {
+                          Header: 'Group',
+                          id: 'group',
+                          width: 90,
+                          accessor: d => d.group,
+                          aggregate: vals => getUniqArrayStr(vals),
+                          Pivot: cellInfo => {
+                            if (cellInfo.isExpanded) {
+                              return (
+                                <div className="expand">
+                                  <div className="expand-icon">
+                                    <i class="fa fa-caret-down"></i>
+                                  </div>
+                                  <div className="expand-value-group">
+                                    {cellInfo.value}
+                                  </div>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="expand">
+                                  <div className="expand-icon">
+                                    <i className="fa fa-caret-right"></i>
+                                  </div>
+                                  <div className="expand-value-group">
+                                    {cellInfo.value}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          },
+                          Cell: row => {
+                            return (
+                              <div
+                                style={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {row.value}
+                              </div>
+                            );
+                          },
+                          filterMethod: (filter, row) => {
+                            if (filter.value === 'all') {
+                              return true;
+                            }
+                            return row[filter.id].includes(filter.value);
+                          },
+                          Filter: ({ filter, onChange }) => {
+                            this.bestPowerIndex = [];
+                            var groups = [...new Set(data.map(x => x.group))];
+                            return (
+                              <select
+                                onChange={event => onChange(event.target.value)}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: '#00A4D6',
+                                  color: 'white'
+                                }}
+                                value={filter ? filter.value : 'all'}
+                              >
+                                <option value="all">All</option>
+                                {groups.map(group => (
+                                  <option key={group} value={group}>
+                                    {group}
+                                  </option>
+                                ))}
+                              </select>
+                            );
+                          }
+                        },
+
+                        {
+                          Header: 'Weight',
+                          id: 'weight',
+                          width: 65,
+                          accessor: d => d.weight,
+                          aggregate: (vals, rows) => {
+                            return getUniqArrayStr(vals, rows);
+                          },
+                          getProps: this.getMaxRowProps,
+                          Cell: row => {
+                            if (row.level <= 1) {
+                              return (
+                                <div
+                                  style={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {row.value}
+                                </div>
+                              );
+                            }
+                            if (row.value === 999999) {
+                              const padding = {
+                                paddingLeft: '10px',
+                                paddingRight: '10px'
+                              };
+                              if (row.row.side === 'Left') {
+                                return (
+                                  <span
+                                    className="best-power-left"
+                                    style={padding}
+                                  >
+                                    {'Max'}
+                                  </span>
+                                );
+                              } else if (row.row.side === 'Right') {
+                                return (
+                                  <span
+                                    className="best-power-right"
+                                    style={padding}
+                                  >
+                                    {'Max'}
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span
+                                  className="best-power-both"
+                                  style={padding}
+                                >
+                                  {'Max'}
+                                </span>
+                              );
+                            }
+                            return (
+                              <Dropdown
+                                trigger={['click']}
+                                overlay={menuWeight}
+                                style={{
+                                  color: 'white',
+                                  backgroundColor: 'red'
+                                }}
+                              >
+                                <span
+                                  className="tag-weight"
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  {row.value}
+                                </span>
+                              </Dropdown>
+                            );
+                          },
+                          filterMethod: (filter, row) => {
+                            if (filter.value === 'all' || row._aggregated) {
+                              return true;
+                            }
+                            var rowValue = row[filter.id];
+                            if (
+                              typeof rowValue === 'string' ||
+                              rowValue instanceof String
+                            ) {
+                              return row[filter.id] === filter.value;
+                            } else {
+                              return String(row[filter.id]) === filter.value;
+                            }
+                          },
+                          Filter: ({ filter, onChange }) => {
+                            this.resetMaxIndexes();
+                            var weights = [
+                              ...new Set(
+                                data.map(x => {
+                                  if (x.weight !== 999999) {
+                                    return Number(x.weight);
+                                  }
+                                })
+                              )
+                            ];
+                            weights.sort((a, b) => (a > b ? 1 : -1));
+                            return (
+                              <select
+                                onChange={event => onChange(event.target.value)}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: '#005312',
+                                  color: 'white'
+                                }}
+                                value={filter ? filter.value : 'all'}
+                              >
+                                <option value="all">All</option>
+                                {weights.map(weight => (
+                                  <option value={weight}>{weight}</option>
+                                ))}
+                              </select>
+                            );
+                          }
+                        },
+                        {
+                          Header: 'Side',
+                          id: 'side',
+                          width: 75,
+                          accessor: 'side',
+                          aggregate: vals => getUniqArrayStr(vals),
+                          getProps: this.getMaxRowProps,
+                          Cell: row => {
+                            if (row.level >= 2) {
+                              if (row.value === 'Left') {
+                                return (
+                                  <span className="tag-side-left">
+                                    <Icon name="angle left"></Icon>
+                                    {row.value}
+                                  </span>
+                                );
+                              } else if (row.value === 'Right') {
+                                return (
+                                  <span className="tag-side-right">
+                                    {row.value}
+                                    <Icon name="angle right"></Icon>
+                                  </span>
+                                );
+                              } else if (row.value === 'Both') {
+                                return (
+                                  <span className="tag-side-both">
+                                    <Icon name="angle left"></Icon>
+                                    {row.value}
+                                    <Icon name="angle right"></Icon>
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <div
+                                    style={{
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap'
+                                    }}
+                                  >
+                                    {row.value}
+                                  </div>
+                                );
+                              }
+                            }
+                            return (
+                              <div
+                                style={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {row.value}
+                              </div>
+                            );
+                          },
+                          filterMethod: (filter, row) => {
+                            if (filter.value === 'all') {
+                              return true;
+                            }
+                            return row[filter.id].includes(filter.value);
+                          },
+                          Filter: ({ filter, onChange }) => {
+                            this.bestPowerIndex = [];
+                            var sides = [...new Set(data.map(x => x.side))];
+                            return (
+                              <select
+                                onChange={event => onChange(event.target.value)}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: '#FA3200',
+                                  color: 'white'
+                                }}
+                                value={filter ? filter.value : 'all'}
+                              >
+                                <option value="all">All</option>
+                                {sides.map(side => (
+                                  <option value={side}>{side}</option>
+                                ))}
+                              </select>
+                            );
+                          }
+                        }
+                      ],
+                      Cell: row => (
+                        <div style={{ fontWeight: '800' }}>{row.value}</div>
+                      )
+                    },
+                    {
+                      Header: 'Power(W)',
+                      columns: [
+                        {
+                          Header: (
+                            <Dropdown
+                              trigger={['click']}
+                              overlay={menu}
+                              style={{ color: 'white', backgroundColor: 'red' }}
+                            >
+                              <div style={{ cursor: 'pointer' }}>
+                                Avg
+                                <Icon
+                                  style={{ marginLeft: '5px', color: 'red' }}
+                                  name="chart line"
+                                />
+                              </div>
+                            </Dropdown>
+                          ),
+                          filterable: false,
+                          headerClassName: 'header-avg',
+                          accessor: 'power',
+                          filterable: false,
+                          width: 65,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row),
+                          Filter: ({ filter, onChange }) => {
+                            return (
+                              <div style={{ backgroundColor: 'white' }}></div>
+                            );
+                          }
+                        },
+                        {
+                          Header: 'Max',
+                          headerClassName: 'header-max',
+                          accessor: 'best:power',
+                          filterable: false,
+                          width: 65,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row),
+                          Filter: () => {
+                            return '';
+                          }
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'power:deviation',
+                          show: deviations.includes('power'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'power:deviation:weight',
+                          show: deviations.includes('power'),
+                          width: 42,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Force(kgf)',
+                      columns: [
+                        {
+                          Header: 'Avg',
+                          headerClassName: 'header-avg',
+                          accessor: 'force',
+                          width: 60,
+                          filterable: false,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: 'Max',
+                          accessor: 'fmax',
+                          headerClassName: 'header-max',
+                          width: 60,
+                          filterable: false,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'force:deviation',
+                          show: deviations.includes('force'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'power:deviation:weight',
+                          show: deviations.includes('force'),
+                          width: 42,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Displacement (degrees)',
+                      columns: [
+                        {
+                          Header: 'Conc',
+                          accessor: 'displacement-concentric',
+                          className: 'cell-value',
+                          headerClassName: 'header-avg',
+                          filterable: false,
+                          width: 55,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row, 'degrees')
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'displacement-concentric:deviation',
+                          show: deviations.includes('displacement'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'displacement-concentric:deviation:weight',
+                          show: deviations.includes('displacement'),
+                          width: 42,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        },
+                        {
+                          Header: 'Ecc',
+                          accessor: 'displacement-eccentric',
+                          headerClassName: 'header-avg',
+                          className: 'cell-value',
+                          width: 55,
+                          filterable: false,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row, 'degrees')
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'displacement-eccentric:deviation',
+                          show: deviations.includes('displacement'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'displacement-eccentric:deviation:weight',
+                          show: deviations.includes('displacement'),
+                          width: 42,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Power to weight(W/kg)',
+                      columns: [
+                        {
+                          Header: 'Avg',
+                          accessor: 'power-to-weight',
+                          className: 'cell-value',
+                          headerClassName: 'header-avg',
+                          filterable: false,
+                          width: 75,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: 'Max',
+                          headerClassName: 'header-max',
+                          accessor: 'best:power-to-weight',
+                          filterable: false,
+                          width: 65,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row),
+                          Filter: () => {
+                            return '';
+                          }
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'power-to-weight:deviation',
+                          show: deviations.includes('power-to-weight'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'power-to-weight:deviation:weight',
+                          show: deviations.includes('power-to-weight'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Acceleration (m/s2)',
+                      columns: [
+                        {
+                          Header: 'Avg',
+                          accessor: 'acceleration',
+                          className: 'cell-value',
+                          headerClassName: 'header-avg',
+                          filterable: false,
+                          width: 75,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: 'Max',
+                          headerClassName: 'header-max',
+                          accessor: 'best:acceleration',
+                          filterable: false,
+                          width: 65,
+                          className: 'cell-value',
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row),
+                          Cell: row => this.getCellRender(row),
+                          Filter: () => {
+                            return '';
+                          }
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'acceleration:deviation',
+                          show: deviations.includes('acceleration'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'acceleration:deviation:weight',
+                          show: deviations.includes('acceleration'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Velocity(m/s)',
+                      columns: [
+                        {
+                          Header: 'Avg',
+                          id: 'velocity',
+                          accessor: 'velocity',
+                          className: 'cell-value',
+                          headerClassName: 'header-avg',
+                          width: 50,
+                          filterable: false,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row, true),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'velocity:deviation',
+                          show: deviations.includes('velocity'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'velocity:deviation:weight',
+                          show: deviations.includes('velocity'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    },
+                    {
+                      Header: 'Contact Time(s)',
+                      columns: [
+                        {
+                          Header: 'Avg',
+                          id: 'contact-time',
+                          accessor: 'contact-time',
+                          className: 'cell-value',
+                          headerClassName: 'header-avg',
+                          width: 50,
+                          filterable: false,
+                          getProps: this.getMaxRowProps,
+                          aggregate: this.getAggregate,
+                          Aggregated: row => this.getAggregateRender(row, true),
+                          Cell: row => this.getCellRender(row)
+                        },
+                        {
+                          Header: this.getSideDeviationHeader(),
+                          filterable: false,
+                          accessor: 'contact-time:deviation',
+                          show: deviations.includes('contact-time'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getSideDeviationRender
+                        },
+                        {
+                          Header: this.getWeightDeviationHeader(),
+                          filterable: false,
+                          accessor: 'contact-time:deviation:weight',
+                          show: deviations.includes('contact-time'),
+                          width: 48,
+                          aggregate: vals => Number(_.mean(vals).toFixed(2)),
+                          getProps: this.getMaxRowProps,
+                          Cell: this.getWeightDeviationRender
+                        }
+                      ]
+                    }
+                  ]}
+                  pivotBy={['type', 'group']}
+                  showPagination={false}
+                  defaultPageSize={10}
+                  minRows={17}
+                  sortable={false}
+                  resizable={false}
+                  getTheadProps={getHeaderStyle}
+                  getTableProps={getTableStyle}
+                  getProps={getTableStyle}
+                  getTheadGroupProps={getHeaderGroupStyle}
+                  getTheadFilterThProps={getHeaderFilterStyle}
+                  getTheadTrProps={getHeaderStyle}
+                  getTrProps={getRowStyle}
+                  getTrGroupProps={getGroupRowStyle}
+                  getTdProps={getRowDataStyle}
+                  expanded={this.state.expanded}
+                  onExpandedChange={expanded => {
+                    this.setState({ expanded });
+                  }}
+                  filtered={this.state.filtered}
+                  onFilteredChange={filtered => this.setState({ filtered })}
+                  sorted={this.state.sorted}
+                  onSortedChange={sorted => this.setState({ sorted })}
+                  className="data-table"
+                  style={{ height: isTest ? 'calc(91vh)' : 'calc(85vh)' }}
+                />{' '}
+              </Segment>
+            </Sidebar.Pusher>
+          </Sidebar.Pushable>
         </div>
       );
     }
@@ -1255,6 +1338,29 @@ const ExerciseData = observer(
           this.maxIndexList[key][type] = [];
         });
       });
+    }
+
+    getTestData(test) {
+      var gdata = [];
+      var data = [];
+      test.summary.exercises.forEach(exercise => {
+        var edata = getDataForWeight(exercise, 'test');
+        edata.forEach(d => data.push(d));
+      });
+      var grouped = _.groupBy(data, 'type');
+      Object.keys(grouped).forEach(key => {
+        grouped[key].sort((a, b) => (a.side < b.side ? 1 : -1));
+        grouped[key].sort((a, b) => (a.weight > b.weight ? 1 : -1));
+        var gg = _.groupBy(grouped[key], 'group');
+        gdata.push({
+          type: key,
+          group: gg
+        });
+      });
+      this.getDeviations(gdata, data);
+      this.getMaxRows(gdata, data);
+      console.log('test-data', data);
+      return data;
     }
 
     getData(day, exercise, sessionType) {
@@ -1460,19 +1566,35 @@ function getUniqArrayStr(array, rows) {
   return result;
 }
 
+function getTableStyle() {
+  return {
+    style: {
+      textAlign: 'center',
+      border: 'none',
+      borderRadius: '0px',
+      fontWeight: '400',
+      padding: '0px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
+  };
+}
+
 function getHeaderStyle() {
   return {
     style: {
-      backgroundColor: '#F5F5F5',
+      // backgroundColor: '#F5F5F5',
       color: '#004C72',
       fontWeight: '500',
       textAlign: 'center',
       verticalAlign: 'middle',
-      // boxShadow: 'inset 0 0 0 0 transparent',
+      boxShadow: 'inset 0 0 0 0 transparent',
       fontSize: '0.98em',
       fontWeight: '400',
       padding: '0px',
       paddingBottom: '0px',
+      border: 'none',
       height: '30px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -1489,7 +1611,7 @@ function getHeaderFilterStyle() {
       fontWeight: '500',
       textAlign: 'center',
       verticalAlign: 'middle',
-      // boxShadow: 'inset 0 0 0 0 transparent',
+      border: 'none',
       fontSize: '0.98em',
       fontWeight: '400',
       padding: '3px',
@@ -1508,7 +1630,7 @@ function getHeaderGroupStyle() {
       fontWeight: '600',
       textAlign: 'center',
       verticalAlign: 'middle',
-      // boxShadow: 'inset 0 0 0 0 transparent',
+      border: 'none',
       fontSize: '0.98em',
       padding: '0px',
       paddingBottom: '0px',
@@ -1538,6 +1660,7 @@ function getGroupRowStyle() {
     style: {
       backgroundColor: 'red',
       borderBottom: '0',
+      border: 'none',
       padding: '0px',
       fontWeight: '600',
       color: 'green'
