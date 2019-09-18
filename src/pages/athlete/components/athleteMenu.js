@@ -96,6 +96,7 @@ const AthleteMenu = observer(
             <Menu.Item key={`tests`} title="Tests">
               <Badge
                 count={this.athlete.tests.length}
+                style={{ backgroundColor: '#E2F1F0', color: 'black' }}
                 showZero
                 offset={[10, 0]}
               >

@@ -144,7 +144,26 @@ export class Athlete {
       fullTest = dtypes.length === 3;
       test.complete = fullTest;
       test.class = ex['exercise-class'];
+      test['exercise-group'] = ex['exercise-group'];
+      test['exercise-subclass'] = ex['exercise-subclass'];
+      test['exercise'] = ex['exercise'];
+      test['body-part'] = ex['body-part'];
+      test['body-parts'] = ex['body-parts'];
+      test['movements'] = ex['movements'];
+      test.max = [
+        { type: 'Isometric', force: NaN },
+        { type: 'Constant Contact', force: NaN },
+        { type: 'Throw-off', force: NaN }
+      ];
       test.group = ex['group'];
+    });
+    tests.forEach(test => {
+      test.summary.exercises.forEach(exercise => {
+        exercise.types.forEach(type => {
+          var max = test.max.find(t => t.type === type.type);
+          max.force = type.summary.best.find(b => b.name === 'force').value;
+        });
+      });
     });
     tests.sort((a, b) => (new Date(a.test) > new Date(b.test) ? 1 : -1));
     this.tests = tests;

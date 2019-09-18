@@ -36,7 +36,6 @@ const AthleteContent = observer(
 
     componentWillReceiveProps = props => {
       this.setStateFromProps(props);
-      console.log('componentWillReceiveProps', props);
     };
 
     componentDidMount = () => {
@@ -112,8 +111,6 @@ const AthleteContent = observer(
           key: 'overall'
         });
       }
-      console.log('render', render);
-      console.log('days', days);
 
       return (
         <div>

@@ -74,7 +74,6 @@ export default class DayBrowser extends Component {
 
   onSelect = key => {
     const { onChange } = this.state;
-    console.log('selected key:', key);
     this.storeState.selectedDay = key;
     onChange(key);
   };
@@ -99,8 +98,8 @@ export default class DayBrowser extends Component {
             arrowRight={ArrowRight}
             selected={selectedDay}
             onSelect={this.onSelect}
-            hideArrows={false}
-            hideSingleArrow={false}
+            hideArrows={true}
+            hideSingleArrow={true}
             transition={+0.4}
             alignCenter={false}
             scrollToSelected={true}
